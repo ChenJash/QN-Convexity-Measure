@@ -22,25 +22,27 @@ export default {
             nxt_index: -1,
             data: {},
             history: [],
-            change_result: false,
+            cur_pos: 0,
+            total_length: [],
+            change_result: -1,
             enable_next: false,
             options: [
                 {
                     id: 'A',
-                    x: 560,
-                    y: 136
+                    x: 330,
+                    y: 165
                 }, {
                     id: 'B',
-                    x: 1004,
-                    y: 136
+                    x: 850,
+                    y: 165
                 }, {
                     id: 'C',
-                    x: 560,
-                    y: 499
+                    x: 330,
+                    y: 513
                 }, {
                     id: 'D',
-                    x: 1004,
-                    y: 499
+                    x: 850,
+                    y: 513
                 }
             ],
             selected: [],
@@ -60,7 +62,7 @@ export default {
                 text: 'Next',
                 y: 973
             }],
-            raw_grid: {},
+            // raw_grid: {},
             grids: [],
             items: [],
             links: [],
@@ -71,7 +73,7 @@ export default {
             update_duration: 500,
             remove_duration: 500,
             trans: {
-                "A": 1, "B": 2, "C": 3, "D": 4
+                "A": 0 ,"B": 1, "C": 2, "D": 3
             }
         };
     },
@@ -89,7 +91,7 @@ export default {
             if(this.selected.length === 0) this.enable_next = false;
             else this.enable_next = true;
             this.enableButton();
-            this.change_result = true;
+            this.change_result += 1;
         },
         nxt_index: function() {
             // clear first
@@ -102,6 +104,32 @@ export default {
                 .duration(this.remove_duration)
                 .attr('opacity', 0);
             this.getData();
+        },
+        total_length: function() {
+            // update progress
+            let pos = this.cur_pos;
+            let total = this.total_length[0];
+            let state = "(simulation)";
+            let delta_x = 1040;
+            if(this.cur_pos > total) {
+                pos -= total;
+                total = this.total_length[1];
+                state = "";
+                delta_x = 1090
+            }
+            this.progress.text(`Current progress ${state}: ${pos} / ${total}`)
+                .attr('x', delta_x);
+
+            // update button3
+            const button3 = this.svg.selectAll('.qn-buttons').filter(d => d.id === 2);
+            if(pos == total) {
+                button3.select("text")
+                    .text("Submit");
+            }
+            else {
+                button3.select("text")
+                    .text("Next");
+            }
         }
     },
     methods: {
@@ -134,18 +162,26 @@ export default {
                     console.log('Get data:', response.data);
                     that.data = response.data.data;
                     that.history = response.data.history;
+                    that.cur_pos = response.data.cur_pos + 1;
+                    that.total_length = response.data.total;
                 }
             });
         },
         submit: async function() {
+            const that = this;
             await axios.post('/api/submit', {
                 result: this.selected
             }).then(function(response) {
                 if(response.data.msg === 'Error') {
                     console.log('Submit error:', response.data.detail);
+                    that.$message.error( 'Submit Error:' + response.data.detail);
                 }
                 else{
                     console.log('Submit success.');
+                    that.$message({
+                        message: 'Submit successfully',
+                        type: 'success'
+                    });
                 }
             });
         },
@@ -156,6 +192,23 @@ export default {
             }).then(function(response) {
                 if(response.data.msg === 'Error') {
                     console.log('Change error:', response.data.detail);
+                    if(response.data.detail == 'This is the final question.') {
+                        // that.$message({
+                        //     message: 'Finish all questions successfully!',
+                        //     type: 'success'
+                        // });
+                        that.$alert('<span>您已完成全部问卷，感谢您的参与，请填写以下问卷，我们会在后续发放感谢金！\n \
+                            <a href="www.wenjuan.com"> www.wenjuan.com </a></span>', '完成', {
+                            confirmButtonText: '确定',
+                            dangerouslyUseHTMLString: true
+                        });
+                    }
+                    else {
+                        that.$message({
+                            message: response.data.detail,
+                            type: 'warning'
+                        }); 
+                    }
                 }
                 else{
                     console.log('Change success.');
@@ -165,7 +218,7 @@ export default {
         },
         loadHistory: function() {
             const history = this.history;
-            this.change_result = false;
+            this.change_result = -1;
             if(history.length === 0) return;
             history.forEach((item) => {
                 item.color_id = this.select_colors.indexOf(item.color);
@@ -175,7 +228,7 @@ export default {
                     .select('.boundary')
                     .attr('stroke', item.color)
                     .attr('opacity', 1);
-                this.grids[this.trans[item.option] - 1].selected = true
+                this.grids[this.trans[item.option]].selected = true
             })
             this.cur_select = this.select_state.indexOf(false);
             this.selected = history;
@@ -193,15 +246,13 @@ export default {
                 grid.id = index;
                 grid.width_size = width_size;
                 grid.cell_width = cell_width;
-                if(index > 0) {
-                    grid.option = this.options[index-1];
-                }
+                grid.option = this.options[index];
                 const cells = [];
                 let i = 0; let j = 0;
                 elements.forEach((element, eindex) => {
                     const cell = {};
                     cell.id = eindex;
-                    cell.pos = [j, i].concat();
+                    cell.pos = [i, j].concat();
                     cell.element = element;
                     cell.label = this.data.labels[element];
                     cell.color = this.data.colors[cell.label];
@@ -214,9 +265,9 @@ export default {
                 grid.name = `${this.data.index}-${index}`
                 grids.push(grid);
             })
-            this.raw_grid = grids[0];
-            this.raw_grid.index = this.data.index;
-            this.grids = grids.slice(1);
+            // this.raw_grid = grids[0];
+            // this.raw_grid.index = this.data.index;
+            this.grids = grids.slice(0);
         },
         itemLayout: function() {
             let divide_size = this.selected.length + 1;
@@ -256,7 +307,7 @@ export default {
                 .attr('height', 1024);
             // background
             this.svg.append('text')
-                .text('Judge Convexity in Grid Layout')
+                .text('Judge Convexity of Grid Layouts')
                 .attr('x', 57)
                 .attr('y', 51)
                 .attr('font-size', 28);
@@ -271,20 +322,25 @@ export default {
                 .attr('stroke', 'rgb(187,187,187)')
                 .attr('stroke-width', 1);
             this.svg.append('text')
-                .text('Select options with the best convexity')
+                .text('Sort the following grid layouts by convexity')
                 .attr('x', 81)
                 .attr('y', 120)
                 .attr('font-size', 20);
             this.svg.append('text')
-                .text('and sort them:')
+                .text('in descending order:')
                 .attr('x', 81)
                 .attr('y', 147)
                 .attr('font-size', 20);
-            this.svg.append('text')
-                .text('Raw grid:')
-                .attr('x', 81)
-                .attr('y', 292)
+            this.progress = this.svg.append('text')
+                .text('Current progress: ')
+                .attr('x', 1090)
+                .attr('y', 120)
                 .attr('font-size', 20);
+            // this.svg.append('text')
+            //     .text('Raw grid:')
+            //     .attr('x', 81)
+            //     .attr('y', 292)
+            //     .attr('font-size', 20);
             this.svg.append('rect')
                 .attr('x', 57)
                 .attr('y', 884)
@@ -362,22 +418,22 @@ export default {
         },
         render: function() {
             // render raw grid
-            const raw_group = this.svg.selectAll('.raw-grid')
-                .data([this.raw_grid], d => d.index);
-            const raw_create = raw_group.enter()
-                .append('g')
-                .attr('class', 'raw-grid')
-                .attr('transform', 'translate(121, 317)');
-                // .style('cursor', 'pointer');
-            raw_group.exit()
-                .transition()
-                .duration(this.remove_duration)
-                .attr('opacity', 0)
-                .remove()
-            let merge_group = raw_group.merge(raw_create);
-            let grid_group = merge_group.selectAll('rect')
-                .data(d => d.cells, c => c.id);
-            this.gridRender(grid_group);
+            // const raw_group = this.svg.selectAll('.raw-grid')
+            //     .data([this.raw_grid], d => d.index);
+            // const raw_create = raw_group.enter()
+            //     .append('g')
+            //     .attr('class', 'raw-grid')
+            //     .attr('transform', 'translate(121, 317)');
+            //     // .style('cursor', 'pointer');
+            // raw_group.exit()
+            //     .transition()
+            //     .duration(this.remove_duration)
+            //     .attr('opacity', 0)
+            //     .remove()
+            // let merge_group = raw_group.merge(raw_create);
+            // let grid_group = merge_group.selectAll('rect')
+            //     .data(d => d.cells, c => c.id);
+            // this.gridRender(grid_group);
 
             // render grids
             const grids_group = this.svg.selectAll('.grid-group')
@@ -412,8 +468,8 @@ export default {
                 .duration(this.remove_duration)
                 .attr('opacity', 0)
                 .remove();
-            merge_group = grids_group.merge(grids_create);
-            grid_group = merge_group.selectAll('.grid-cell')
+            let merge_group = grids_group.merge(grids_create);
+            let grid_group = merge_group.selectAll('.grid-cell')
                 .data(d => d.cells, c => c.id);
             this.gridRender(grid_group);
         },
@@ -596,9 +652,10 @@ export default {
             }
             if(this.data.index === 0 && d.id == 1) return;
             if(!this.enable_next && d.id == 2) return;
-            if(this.enable_next && this.change_result) {
+            if(this.enable_next && this.change_result > 0) {
                 // submit current result
                 await this.submit();
+                this.change_result = -1;
             }
             let nxt = this.data.index;
             if(d.id == 1) nxt -= 1;

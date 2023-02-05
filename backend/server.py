@@ -33,6 +33,11 @@ def test_db():
     print(datasaver.query_user(get_db(), 0))
     return jsonify("Test table successfully.")
 
+@app.route("/api/save_db")
+def save_db():
+    datasaver.save_results(get_db(), "../database/db.pkl")
+    return jsonify("Save table successfully.")
+
 # api for qn
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -61,9 +66,11 @@ def get_data():
     ret["msg"] = "Success"
 
     # todo: load current data
-    data, history = dataloader.get_data(get_db(), user_id)
+    data, history, pos = dataloader.get_data(get_db(), user_id)
     ret["data"] = data
     ret["history"] = history
+    ret["cur_pos"] = pos
+    ret["total"] = dataloader.meta_data["count"]
     return jsonify(ret)
 
 @app.route("/api/submit", methods=["POST"])
@@ -77,7 +84,7 @@ def submit():
 
     result = request.json["result"]
     db = get_db()
-    question, _ = dataloader.get_question(db, user_id)
+    question, _, _ = dataloader.get_question(db, user_id)
     res = datasaver.submit_result(db, question, user_id, result)
     if res:
         ret["msg"] = "Success"
@@ -96,9 +103,10 @@ def change_question():
         return jsonify(ret)
     
     nxt = request.json["index"]
-    if datasaver.set_user_cur_pos(get_db(), user_id, nxt):
+    res, detail = datasaver.set_user_cur_pos(get_db(), user_id, nxt)
+    if res:
         ret["msg"] = "Success"
     else:
         ret["msg"] = "Error"
-        ret["detail"] = "This is first/final question!"
+    ret["detail"] = detail
     return jsonify(ret)

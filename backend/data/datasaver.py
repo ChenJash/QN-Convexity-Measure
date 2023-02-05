@@ -1,10 +1,12 @@
-import sqlite3, random, time
+import sqlite3, random, time, pickle
 from IPython import embed
 
 class DataSaver(object):
     def __init__(self) -> None:
         self.insert_user_query = "INSERT INTO user(user_session, qualified, cur_pos, finished_num, _order) VALUES(?, ?, ?, ?, ?);"
         self.select_user_query = "SELECT * FROM user WHERE user_session = {};"
+        self.select_user_qualified_query = "SELECT qualified FROM user WHERE user_session = {};"
+        self.update_user_qualified_query = "UPDATE user SET qualified = {} WHERE user_session = {};"
         self.insert_load_query = "INSERT INTO load(user_session, question_id, question_name, load_seq) VALUES(?, ?, ?, ?);"
         self.select_user_finished_num_query = "SELECT finished_num FROM user WHERE user_session = {}"
         self.update_user_finished_num_query = "UPDATE user SET finished_num = {} WHERE user_session = {}"
@@ -15,7 +17,8 @@ class DataSaver(object):
                                 rank_T, rank_S, rank_E, rank_C, colors) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);"""
         self.select_submit_query = "SELECT * FROM submit WHERE user_session = {} AND question_id = {};"
         self.select_result_query = "SELECT submit_date, rank_T, rank_S, rank_E, rank_C, colors FROM submit WHERE user_session = {} AND question_id = {};"
-        self.question_num = 0
+        self.select_all_results = "SELECT user_session, question_id, question_name, submit_date, rank_T, rank_S, rank_E, rank_C FROM submit;"
+        self.question_num = []
         self.sequence = ["T", "S", "E", "C"]
         self.trans = {"A": 0, "B": 1, "C": 2, "D": 3}
         self.trans2 = {"T": 0, "S": 1, "E": 2, "C": 3}
@@ -38,8 +41,11 @@ class DataSaver(object):
         _, pos = self.query_user(db, session_id)
         if pos == -1:
             cur = db.cursor()
-            seq = list(range(self.question_num))
-            random.shuffle(seq)
+            seq0 = list(range(self.question_num[0]))
+            random.shuffle(seq0)
+            seq1 = list(map(lambda x: x+self.question_num[0], list(range(self.question_num[1]))))
+            random.shuffle(seq1)
+            seq = seq0 + seq1
             cur.execute(self.insert_user_query, (session_id, 0, 0, 0, ",".join(list(map(str, seq)))))
             db.commit()
             return True
@@ -62,7 +68,8 @@ class DataSaver(object):
         cur.execute(self.select_load_query.format(session_id, question["id"]))
         rows = cur.fetchall()
         if len(rows) > 0:
-            cur.execute(self.update_load_query.format(seq_str, session_id, question["id"]))
+            seq_str = rows[0][-1]
+            load_seq = list(map(lambda x:self.trans2[x], seq_str))
         else:
             cur.execute(self.insert_load_query, (session_id, question["id"], question["name"], seq_str))
         db.commit()
@@ -111,7 +118,6 @@ class DataSaver(object):
         if len(rows) == 0:
             return history_result
         rows.sort(key=lambda x: x[0], reverse=True)
-        # embed()
         row = rows[0]
         color_str = row[-1]
         color_tsec = color_str.split(",")
@@ -130,15 +136,50 @@ class DataSaver(object):
             if history_result[i]["rank"] == history_result[i+1]["rank"]:
                 history_result[i]["equal"][1] = True
                 history_result[i+1]["equal"][0] = True
-        # embed()
         return history_result
 
-    def set_user_cur_pos(self, db: sqlite3.Connection, session_id, pos) -> bool:
-        if pos < 0 or pos >= self.question_num:
-            return False
+    def set_user_cur_pos(self, db: sqlite3.Connection, session_id, pos):
+        if pos < 0:
+            return False, "Target position out of range."
+        if pos >= self.question_num[0] + self.question_num[1]:
+            return False, "This is the final question."
+        if pos >= self.question_num[0]:
+            judge, detail = self.judge_test(db, session_id)
+            if not judge:
+                return judge, detail
         cur = db.cursor()
-        cur.execute(self.update_user_cur_pos_query.format(pos ,session_id))
+        cur.execute(self.update_user_cur_pos_query.format(pos, session_id))
         db.commit()
-        return True
+        return True, "Successfully change pos."
+    
+    def save_results(self, db: sqlite3.Connection, save_path: str) -> None:
+        cur = db.cursor()
+        cur.execute(self.select_all_results)
+        rows = cur.fetchall()
+        with open(save_path, "wb") as f:
+            pickle.dump(rows, f)
 
+    def judge_test(self, db: sqlite3.Connection, session_id):
+        cur = db.cursor()
+        cur.execute(self.select_user_qualified_query.format(session_id))
+        rows = cur.fetchall()
+        if rows[0][0] == 1:
+            return True, "Has passed simulation test."
+        # judge simu test
+        trans, _ = self.query_user(db, session_id)
+        wrong_num = 0
+        for id in range(self.question_num[0]):
+            cur.execute(self.select_result_query.format(session_id, trans[id]))
+            rows = cur.fetchall()
+            if len(rows) == 0:
+                return False, "Test question [{}]: the question has not been answered.".format(id+1)
+            rows.sort(key=lambda x: x[0], reverse=True)
+            row = rows[0]
+            if row[4] > 0 or row[3] != 1:
+                wrong_num += 1
+                if wrong_num > 1:
+                    return False, "Test question [{}]: the answer given is wrong.".format(id+1)
+        cur.execute(self.update_user_qualified_query.format(1, session_id))
+        db.commit()
+        return True, "Pass simulation test."
 datasaver = DataSaver()
