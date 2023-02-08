@@ -110,3 +110,21 @@ def change_question():
         ret["msg"] = "Error"
     ret["detail"] = detail
     return jsonify(ret)
+
+@app.route("/api/get-answer", methods=["POST"])
+def get_answer():
+    ret = {}
+    user_id = session.get("user_id", -1)
+    if user_id == -1:
+        ret["msg"] = "Error"
+        ret["detail"] = "Please login first"
+        return jsonify(ret)
+    
+    res, detail = dataloader.get_answer(get_db(), user_id)
+    if not res:
+        ret["msg"] = "Error"
+        ret["detail"] = detail
+        return jsonify(ret)
+    ret["msg"] = "Success"
+    ret["answer"] = detail
+    return jsonify(ret)

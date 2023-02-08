@@ -177,8 +177,8 @@ class DataSaver(object):
             row = rows[0]
             if row[4] > 0 or row[3] != 1:
                 wrong_num += 1
-                if wrong_num > 1:
-                    return False, "Test question [{}]: the answer given is wrong.".format(id+1)
+                # if wrong_num > 1:
+                #     return False, "Test question [{}]: the answer given is wrong.".format(id+1)
         cur.execute(self.update_user_qualified_query.format(1, session_id))
         db.commit()
         return True, "Pass simulation test."

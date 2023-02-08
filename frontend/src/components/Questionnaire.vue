@@ -2,6 +2,12 @@
   <div class="question-naire">
     <svg id="main-svg">
     </svg>
+    <el-dialog title="Question Answer" :visible.sync="answer_dialog" width="1300px" @open="openDialog" @closed="closeDialog">
+        <svg id="answer-svg" width="100%" height="570px">
+            <g class="answer-nodes"></g>
+            <g class="answer-links"></g>
+        </svg>
+    </el-dialog>
   </div>
 </template>
 
@@ -15,10 +21,14 @@ export default {
         svg: function() {
             return d3.select('#main-svg');
         },
+        d_svg: function() {
+            return d3.select('#answer-svg')
+        }
     },
     data() {
         return {
             user_id: -1,
+            cur_index: -1,
             nxt_index: -1,
             data: {},
             history: [],
@@ -73,8 +83,18 @@ export default {
             update_duration: 500,
             remove_duration: 500,
             trans: {
-                "A": 0 ,"B": 1, "C": 2, "D": 3
-            }
+                'A': 0 ,'B': 1, 'C': 2, 'D': 3
+            },
+            trans2: ['A', 'B', 'C', 'D'],
+            // dialogs
+            answer_dialog: false,
+            dialog_width: 1300,
+            dialog_height: 570,
+            dialog_nodes: [],
+            dialog_links: [],
+            dialog_texts: [],
+            d_grid_width: 200,
+            answer_data: [],
         };
     },
     watch: {
@@ -88,12 +108,12 @@ export default {
         selected: function() {
             this.itemLayout();
             this.itemRender();
-            if(this.selected.length === 0) this.enable_next = false;
+            if(this.selected.length < 4) this.enable_next = false;
             else this.enable_next = true;
             this.enableButton();
             this.change_result += 1;
         },
-        nxt_index: function() {
+        cur_index: function() {
             // clear first
             this.cur_select = 0;
             this.selected = [];
@@ -122,7 +142,7 @@ export default {
 
             // update button3
             const button3 = this.svg.selectAll('.qn-buttons').filter(d => d.id === 2);
-            if(pos == total) {
+            if(pos == total && total == this.total_length[1]) {
                 button3.select("text")
                     .text("Submit");
             }
@@ -130,6 +150,10 @@ export default {
                 button3.select("text")
                     .text("Next");
             }
+        },
+        answer_data: function() {
+            this.dialogLayout();
+            this.dialogRender();
         }
     },
     methods: {
@@ -197,9 +221,10 @@ export default {
                         //     message: 'Finish all questions successfully!',
                         //     type: 'success'
                         // });
-                        that.$alert('<span>您已完成全部问卷，感谢您的参与，请填写以下问卷，我们会在后续发放感谢金！\n \
-                            <a href="www.wenjuan.com"> www.wenjuan.com </a></span>', '完成', {
-                            confirmButtonText: '确定',
+                        // location.href=""
+                        that.$alert('<span>You have completed all the questions, thank you for your participation! Please fill out the following questionnaire, we will issue a thank you money later! \
+                             <a href="https://www.wjx.cn/vm/QEoM9UB.aspx# "> link </a></span>', 'Congratulations!', {
+                            confirmButtonText: 'Confirm',
                             dangerouslyUseHTMLString: true
                         });
                     }
@@ -212,7 +237,7 @@ export default {
                 }
                 else{
                     console.log('Change success.');
-                    that.nxt_index = nxt;
+                    that.cur_index = nxt;
                 }
             });
         },
@@ -277,7 +302,7 @@ export default {
             const item_gap = this.rank_width / divide_size;
             this.items = this.selected.map((op, index) => {
                 const item = {};
-                item.name = `${op.option}-${op.color}`;
+                item.name = `${this.data.index}-${op.option}-${op.color}`;
                 item.option = op.option;
                 item.color = op.color;
                 item.sequence = index;
@@ -300,6 +325,88 @@ export default {
                 if(link.start.equal[1] && link.end.equal[0]) link.value = '=';
                 this.links.push(link);
             })
+        },
+        dialogLayout: function() {
+            const ewidth = (this.dialog_width - 40) / 8;
+            const nodes = [];
+            const width_size = Math.floor(Math.sqrt(this.grids[0].cells.length));
+            for(let i = 0; i < 4; i++){
+                const node = {};
+                node.id = this.answer_data[0][i];
+                node.option = this.trans2[node.id];
+                node.name = `answer-${this.data.index}-${node.option}`
+                node.x = (2 * i + 1) * ewidth - this.d_grid_width / 2;
+                node.y = 45;
+                node.width = this.d_grid_width;
+                const raw_grid = this.grids[node.id];
+                const grid = {};
+                grid.id = raw_grid.id;
+                grid.width_size = raw_grid.width_size;
+                grid.cell_width = raw_grid.cell_width;
+                grid.option = raw_grid.option;
+                const cells = raw_grid.cells.map((rc) => {
+                    const cell = {};
+                    cell.id = rc.id;
+                    cell.pos = rc.pos.concat();
+                    cell.element = rc.element;
+                    cell.label = rc.label;
+                    cell.color = rc.color;
+                    cell.width = this.d_grid_width / width_size;
+                    return cell;
+                })
+                grid.cells = cells;
+                grid.name = raw_grid.name;
+                node.grid = grid;
+                node.color = this.selected.filter(e => e.option == node.option)[0].color;
+                nodes.push(node);
+            }
+            this.dialog_nodes = nodes;
+
+            const links = [];
+            for(let i = 0; i < 3; i++){
+                const link = {};
+                link.start = nodes[i];
+                link.end = nodes[i+1];
+                link.name = `${nodes[i].name}-${nodes[i+1].name}`;
+                link.x = (2 * i + 2) * ewidth;
+                link.y = 45 + this.d_grid_width / 2;
+                link.value = '>';
+                links.push(link);
+            }
+            this.dialog_links = links;
+
+            const xstart = 39;
+            const ystart = 360, deltay = 37;
+            const rgb = function(rgblist) {
+                return `rgb(${rgblist[0] * 255}, ${rgblist[1] * 255}, ${rgblist[2] * 255})`;
+            }
+            const texts = this.answer_data[1].map((value, index) => {
+                value = value.replace(/\[1\]/g, `${nodes[0].option}`);
+                value = value.replace(/\[2\]/g, `${nodes[1].option}`);
+                value = value.replace(/\[3\]/g, `${nodes[2].option}`);
+                value = value.replace(/\[4\]/g, `${nodes[3].option}`);
+                value = value.replace(/Category 1/g, `<tspan fill="${rgb(this.data.colors[0])}" >Category 1</tspan>`);
+                value = value.replace(/Categories 1/g, `<tspan fill="${rgb(this.data.colors[0])}" >Categories 1</tspan>`);
+                value = value.replace(/red/g, `<tspan fill="${rgb(this.data.colors[0])}" >red</tspan>`);
+                value = value.replace(/Category 2/g, `<tspan fill="${rgb(this.data.colors[1])}" >Category 2</tspan>`);
+                value = value.replace(/2, and/g, `<tspan fill="${rgb(this.data.colors[1])}" >2</tspan>, and`);
+                value = value.replace(/blue/g, `<tspan fill="${rgb(this.data.colors[1])}" >blue</tspan>`);
+                if(this.data.colors[2] !== undefined) {
+                    value = value.replace(/Category 3/g, `<tspan fill="${rgb(this.data.colors[2])}" >Category 3</tspan>`);
+                    value = value.replace(/and 3/g, `and <tspan fill="${rgb(this.data.colors[2])}" >3</tspan>, and`);
+                    value = value.replace(/green/g, `<tspan fill="${rgb(this.data.colors[2])}" >green</tspan>`);
+                }
+                if(this.data.colors[3] !== undefined) {
+                    value = value.replace(/Category 4/g, `<tspan fill="${rgb(this.data.colors[3])}" >Category 4</tspan>`);
+                    value = value.replace(/purple/g, `<tspan fill="${rgb(this.data.colors[3])}" >purple</tspan>`);
+                }
+                return {
+                    value: value,
+                    x: xstart,
+                    y: ystart + index * deltay
+                }
+            })
+            this.dialog_texts = texts;
         },
         // render functions
         initRender: function() {
@@ -387,7 +494,7 @@ export default {
             button3.select('text')
                 .attr('fill', 'rgba(108,108,108,0.72)');
         },
-        gridRender: function(group) {
+        gridRender: function(group, animation=true) {
             group.enter()
                 .append('rect')
                 .attr('class', 'grid-cell')
@@ -400,11 +507,11 @@ export default {
                 .attr('stroke-width', 1)
                 .attr('opacity', 0)
                 .transition()
-                .duration(this.create_duration / 3)
-                .delay(this.remove_duration / 3)
+                .duration(animation ? this.create_duration / 4: 0)
+                .delay(animation ? this.remove_duration / 4: 0)
                 .attr('opacity', 1);
             group.transition()
-                .duration(this.update_duration)
+                .duration(animation ? this.update_duration: 0)
                 .attr('x', d => d.pos[0] * d.width)
                 .attr('y', d => d.pos[1] * d.width)
                 .attr('width', d => d.width)
@@ -412,7 +519,7 @@ export default {
                 .attr('fill', d => `rgb(${d.color[0] * 255},${d.color[1] * 255},${d.color[2] * 255})`)
             group.exit()
                 .transition()
-                .duration(this.remove_duration)
+                .duration(animation ? this.remove_duration: 0)
                 .attr('opacity', 0)
                 .remove()
         },
@@ -548,14 +655,14 @@ export default {
                 .attr('font-weight', 'bold');
             item_create.attr('opacity', 0)
                 .transition()
-                .duration(this.create_duration)
+                .duration(this.create_duration / 2)
                 .attr('opacity', 1);
             item_group.transition()
-                .duration(this.update_duration)
+                .duration(this.update_duration / 2)
                 .attr('transform', d => `translate(${d.x}, ${d.y})`);
             item_group.exit()
                 .transition()
-                .duration(this.remove_duration)
+                .duration(this.remove_duration / 2)
                 .attr('opacity', 0)
                 .remove();
             
@@ -586,18 +693,101 @@ export default {
                 .attr('fill', '#9A9A9A');
             link_create.attr('opacity', 0)
                 .transition()
-                .duration(this.create_duration)
+                .duration(this.create_duration / 2)
                 .attr('opacity', 1);
             link_group.transition()
-                .duration(this.update_duration)
+                .duration(this.update_duration / 2)
                 .attr('transform', d => `translate(${d.x}, ${d.y})`);
             link_group.select('text')
                 .transition()
-                .duration(this.update_duration)
+                .duration(this.update_duration / 2)
                 .text(d => d.value);
             link_group.exit()
                 .transition()
-                .duration(this.remove_duration)
+                .duration(this.remove_duration / 2)
+                .attr('opacity', 0)
+                .remove();
+        },
+        dialogRender: function(){
+            // render nodes
+            const node_drawer = this.d_svg.select('g.answer-nodes');
+            const nodes = node_drawer.selectAll('.answer-node')
+                .data(this.dialog_nodes, d => d.name);
+            const create = nodes.enter()
+                .append('g')
+                .attr('class', 'answer-node')
+                .attr('transform', d => `translate(${d.x}, ${d.y})`);
+            create.append('rect')
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', d => d.width)
+                .attr('height', d => d.width)
+                .attr('stroke', d => d.color)
+                .attr('stroke-width', 15)
+                .attr('fill', 'None');
+            create.append('text')
+                .text(d => d.option)
+                .attr('x', -5)
+                .attr('y', -13)
+                .attr('font-size', 20)
+                .attr('fill', d => d.color);
+            nodes.exit()
+                .attr('opacity', 0)
+                .remove();
+            const merged_nodes = nodes.merge(create);
+            const grids_group = merged_nodes.selectAll('.grid-cell')
+                .data(d => d.grid.cells, c => c.id);
+            this.gridRender(grids_group, false);
+            
+            // render links
+            const link_drawer = this.d_svg.select('g.answer-links');
+            const links = link_drawer.selectAll('.answer-link')
+                .data(this.dialog_links, d => d.names);
+            const link_create = links.enter().append('g')
+                .attr('class', 'link-group')
+                .attr('transform', d => `translate(${d.x}, ${d.y})`);
+            link_create.append('circle')
+                .attr('cx', 0)
+                .attr('cy', 0)
+                .attr('r', 22)
+                .attr('stroke', 'rgba(108,108,108, 0.57)')
+                .attr('stroke-width', 1)
+                .attr('fill', 'rgba(254,250,131,0.73)');
+            link_create.append('text')
+                .text(d => d.value)
+                .attr('x', 0)
+                .attr('y', 8)
+                .attr('fill', d => d.color)
+                .attr('font-size', 22)
+                .attr('text-anchor', 'middle')
+                .attr('font-weight', 'bold')
+                .attr('fill', '#9A9A9A');
+            links.exit()
+                .attr('opacity', 0)
+                .remove();
+            
+            // render texts
+            this.d_svg.selectAll('.explain-text')
+                .data(['Explanation:'])
+                .enter()
+                .append('text')
+                .attr('class', 'explain-text')
+                .text(d => d)
+                .attr('x', 34)
+                .attr('y', 320)
+                .attr('font-size', 22);
+
+            const content = this.d_svg.selectAll('.explain-content')
+                .data(this.dialog_texts);
+            content.enter()
+                .append('text')
+                .attr('class', 'explain-content')
+                .attr('x', d => d.x)
+                .attr('y', d => d.y)
+                .html(d => d.value)
+                .attr('font-size', 16);
+            content.html(d => d.value);
+            content.exit()
                 .attr('opacity', 0)
                 .remove();
         },
@@ -652,15 +842,41 @@ export default {
             }
             if(this.data.index === 0 && d.id == 1) return;
             if(!this.enable_next && d.id == 2) return;
+            let nxt = this.data.index;
+            if(d.id == 1) nxt -= 1;
+            else nxt += 1;
             if(this.enable_next && this.change_result > 0) {
                 // submit current result
                 await this.submit();
                 this.change_result = -1;
+                if(this.cur_pos <= this.total_length[0] && d.id == 2){
+                    this.nxt_index = nxt;
+                    this.answer_dialog = true;
+                    return;
+                }
             }
-            let nxt = this.data.index;
-            if(d.id == 1) nxt -= 1;
-            else nxt += 1;
             await this.changeQuestion(nxt);
+        },
+        openDialog: async function() {
+            const that = this;
+            await axios.post('/api/get-answer', {
+            }).then(function(response) {
+                if(response.data.msg === 'Error') {
+                    console.log('Get answer error:', response.data.detail);
+                    this.answer_dialog = false;
+                }
+                else{
+                    console.log('Get Answer', response.data);
+                    that.answer_data = response.data.answer;
+                }
+            });
+            console.log("get answer await")
+        },
+        closeDialog: function() {
+            this.changeQuestion(this.nxt_index);
+            // setTimeout(() => {
+            //     this.changeQuestion(this.nxt_index);
+            // }, 500);
         },
         highlightOption: function(ev, d) {
             if(d.selected == true) return;

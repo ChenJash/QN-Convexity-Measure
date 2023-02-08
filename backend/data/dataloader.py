@@ -12,7 +12,7 @@ class DataLoader(object):
         self.meta_data = {}
         self.data = []
         self.test_path = "../datasets/pkg-simutest.pkl"
-        self.data_path = "../datasets/pkg-ques-20.pkl"
+        self.data_path = "../datasets/pkg-ques-final.pkl"
         self.load_data()
         self.colors = [plt.get_cmap('Set1').colors, plt.get_cmap('tab10').colors, plt.get_cmap('Paired').colors, plt.get_cmap('tab20').colors]
         datasaver.set_question_num(self.meta_data["count"])
@@ -77,7 +77,8 @@ class DataLoader(object):
         data = {}
         data["grids"] = []
         for i in load_seq:
-            data["grids"].append(raw["grids"][i+part])
+            # data["grids"].append(raw["grids"][i+part])
+            data["grids"].append(raw["grids"][i])
         data["labels"] = raw["labels"]
         data["index"] = pos
         label_set = set(data["labels"])
@@ -95,5 +96,15 @@ class DataLoader(object):
             item["option"] = self.trans[load_seq.index(item["index"])]
             del item["index"]
         return data, history_result, pos
+
+    def get_answer(self, db, user_id):
+        raw, part, pos = self.get_question(db, user_id)
+        if part == 1:
+            return False, "Only simulated questions have standard answers and solutions."
+        load_seq = datasaver.load_data(db, raw, user_id)
+        simu_result = [3, 2, 1, 0]
+        simu_result = list(map(lambda x: load_seq.index(x), simu_result))
+        return True, [simu_result, raw["explain"]] 
+
 
 dataloader = DataLoader()
