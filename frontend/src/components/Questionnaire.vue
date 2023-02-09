@@ -6,7 +6,8 @@
         </video>
     </el-dialog>
     <el-dialog title="Consent Form" :visible.sync="consent_form" width="1300px" :show-close="false" 
-            :close-on-press-escape="false" :close-on-click-modal="false" class="form">
+            :close-on-press-escape="false" :close-on-click-modal="false" class="form" id="consent">
+        <el-link type="primary" id="sheet-link" @click="info_sheet=true">Participant Information Sheet</el-link>
         <el-form label-position="left" label-width="1000px" :model="consent_result">
         <el-form-item class="item" label="1.	I confirm that I have read and have understood the information sheet dated February 9，2023 for the above study. I have had the opportunity to consider the information, ask questions and have had these answered satisfactorily.">
             <el-checkbox v-model="consent_result.agree1">Agree</el-checkbox>
@@ -22,6 +23,16 @@
         </el-form-item>
         <el-button type="primary" @click="startQuestions">Start Answer!</el-button>
         </el-form>
+    </el-dialog>
+    <el-dialog title="Participant Information Sheet" :visible.sync="info_sheet" width="1300px" class="form" id="sheet">
+        <p>You are being invited to participate in a research study. Before you decide whether to participate, it is important for you to understand why the research is being done and what it will involve. Please take time to read the following information carefully and feel free to ask us if you would like more information or if there is anything that you do not understand. Please also feel free to discuss this with your friends, relatives, and anyone else you wish. We would like to stress that you do not have to accept this invitation and should only agree to take part if you want to.</p>
+        <p>The purpose of the study is to develop a grid layout method for better preserving cluster structures. According to Gestalt principles, people perceive convex shapes ahead of concave shapes. It is then desired to generate the layout result that makes each cluster more convex. This process requires a convexity measure. However, there is no yet generally accepted convexity measure, and we want to know which measure is more consistent with human perception. To do this, we need to have participants, like yourself, to see a set of grid layout results and then sort the results based on the convexity.</p>
+        <p>While you perform the tasks, your interaction with the system will be in a safe environment and supervised by the professors or research students doing the project. The researchers will be always on the side to only observe and answer any questions and concerns you may have and to make sure all things are running as intended and that you are always comfortable and feeling safe at all times. </p>
+        <p>The system will record automatically your sort results for later analyses. In addition, you may be asked to complete some simple questionnaires and answer some questions about your general experience and feelings about comparing the convexity of different grid layouts. The questions will not ask any personal information about you and if you feel uncomfortable with any question, it is quite alright if you choose not to answer. The user study will last about 1 hours.</p>
+        <p>The data collected will help us understand how to design better grid layout algorithm that preserve the convexity of cluster shapes and will allow us to write reports and publish them as academic papers. If any reports and papers are published, they will not contain any information that can be used to identify any of the participants involved in our experiment.</p>
+        <p>There will be other participants who will likely be THU and XJTLU students and their acquaintances. One of the benefits you and other participants will gain is to experience state-of-the-art technologies, like visualization, grid layout, and convexity measures.</p>
+        <p>We want to make it clear to all our participants that they are not the ones being tested, but that we are only assessing the perceptions on convexity. Your participation is entirely voluntary, and you can stop at any time. </p>
+        <p>If you are unhappy or if there is a problem, please feel free to let us know by contacting Dr. Lingyun Yu and we will try to help. If you remain unhappy or have a complaint with which you feel you cannot come to us, then you should contact the Chair of the Research Ethics Sub-Committee on ethics@xjtlu.edu.cn with enough details to help identify the project.</p>
     </el-dialog>
     <svg id="main-svg">
     </svg>
@@ -58,6 +69,7 @@ export default {
                 agree3: false,
                 agree4: false
             },
+            info_sheet: false,
             // tutorial
             tutorial: false,
             // questionnarie
@@ -993,7 +1005,7 @@ export default {
         },
         closeTutorial: function() {
             const that = this;
-            this.$confirm('<p style="font-size:18px;">Have you finished the tutorial? <\p>\
+            this.$confirm('<p style="font-size:18px;">Have you finished the tutorial? </p>\
                 <p style="font-size:18px;"><span style="color:red;">You can\'t return to the video after closing. </span></p>', 'Attention', {
                 confirmButtonText: 'Confirm',
                 cancelButtonText: 'Cancel',
@@ -1042,11 +1054,25 @@ export default {
     font-size: 20px;
 }
 
+#sheet-link {
+    padding-top: 2px;
+    padding-bottom: 10px;
+}
 
-.input_video{
-    width: 1120px;
-    height: 630px;
-    margin: 0 auto;
+#sheet p {
+    text-anchor: start;
+    text-align: left;
+    font-size: 18px;
+    word-break: keep-all;
+    word-wrap: break-word;
+}
+
+#sheet .el-dialog__body {
+    padding-top: 5px;
+}
+
+#consent .el-dialog__body {
+    padding-top: 10px;
 }
 
 </style>
