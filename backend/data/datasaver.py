@@ -18,11 +18,34 @@ class DataSaver(object):
         self.select_submit_query = "SELECT * FROM submit WHERE user_session = {} AND question_id = {};"
         self.select_result_query = "SELECT submit_date, rank_T, rank_S, rank_E, rank_C, colors FROM submit WHERE user_session = {} AND question_id = {};"
         self.select_all_results = "SELECT user_session, question_id, question_name, submit_date, rank_T, rank_S, rank_E, rank_C FROM submit;"
+        self.select_all_users = "SELECT user_session, finished_num FROM user;"
         self.question_num = []
         self.sequence = ["T", "S", "E", "C"]
         self.trans = {"A": 0, "B": 1, "C": 2, "D": 3}
         self.trans2 = {"T": 0, "S": 1, "E": 2, "C": 3}
+        self.latin = []
+        self.init_latin()
     
+    # latin sequences
+    def init_latin(self) -> None:
+        wx, wy, wz = 12, 4, 1
+        xseq = [0,1,2,1,2,0,2,0,1]
+        yseq = [0,1,2,2,0,1,1,2,0]
+        latin = []
+        for i in range(36):
+            x = xseq[i % 9]
+            y = yseq[i % 9]
+            z = i % 4
+            index = wx * x + wy * y + wz * z
+            latin.append(index)
+        self.latin = latin
+        # print("latin", self.latin)
+    
+    def get_seq(self, i) -> list:
+        new_seq = self.latin[i:] + self.latin[0: i]
+        return new_seq
+
+    # database apis
     def set_question_num(self, num: int) -> None:
         self.question_num = num
     
@@ -36,15 +59,35 @@ class DataSaver(object):
                 colors text not null, user_session integer not null, foreign key(user_session) references user(user_session));
         """)
         db.commit()
+
+    def get_null_latin_seq(self, db: sqlite3.Connection, session_id) -> list:
+        if session_id < 1:
+            return self.get_seq(session_id)
+        cur = db.cursor()
+        cur.execute(self.select_all_users)
+        rows = cur.fetchall()
+        rows.sort(key=lambda x:x[0])
+        replace_id = -1
+        for row in rows:
+            if row[1] < self.question_num[0] + self.question_num[1]:
+                replace_id = row[0]
+                break
+        # print("replace", replace_id)
+        if replace_id > -1:
+            return self.get_seq(replace_id)
+        print("Database Error: too much submit more than 36.")
+        return self.get_seq(session_id)
+
     
     def insert_user(self, db: sqlite3.Connection, session_id) -> bool:
         _, pos = self.query_user(db, session_id)
         if pos == -1:
             cur = db.cursor()
+            # simulation random
             seq0 = list(range(self.question_num[0]))
             random.shuffle(seq0)
-            seq1 = list(map(lambda x: x+self.question_num[0], list(range(self.question_num[1]))))
-            random.shuffle(seq1)
+            # normal latin square
+            seq1 = list(map(lambda x: x+self.question_num[0], self.get_null_latin_seq(db, session_id)))
             seq = seq0 + seq1
             cur.execute(self.insert_user_query, (session_id, 0, 0, 0, ",".join(list(map(str, seq)))))
             db.commit()

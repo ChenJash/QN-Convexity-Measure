@@ -1,8 +1,31 @@
 <template>
   <div class="question-naire">
+    <el-dialog title="Tutorial" :visible.sync="tutorial" width="1300px" class="form" :before-close="closeTutorial">
+        <video width="1250" height="630" controls>
+            <source src="../assets/mp4/grid_tutorial.mp4" />
+        </video>
+    </el-dialog>
+    <el-dialog title="Consent Form" :visible.sync="consent_form" width="1300px" :show-close="false" 
+            :close-on-press-escape="false" :close-on-click-modal="false" class="form">
+        <el-form label-position="left" label-width="1000px" :model="consent_result">
+        <el-form-item class="item" label="1.	I confirm that I have read and have understood the information sheet dated February 9，2023 for the above study. I have had the opportunity to consider the information, ask questions and have had these answered satisfactorily.">
+            <el-checkbox v-model="consent_result.agree1">Agree</el-checkbox>
+        </el-form-item>
+        <el-form-item class="item" label="2.	I understand that my participation is voluntary and that I am free to withdraw at any time without giving any reason, without my rights being affected.">
+            <el-checkbox v-model="consent_result.agree2">Agree</el-checkbox>
+        </el-form-item>
+        <el-form-item class="item" label="3.	I understand that I can at any time ask for access to the information I provide and I can also request the destruction of that information if I wish.">
+            <el-checkbox v-model="consent_result.agree3">Agree</el-checkbox>
+        </el-form-item>
+        <el-form-item class="item" label="4.	I agree to take part in the above study.">
+            <el-checkbox v-model="consent_result.agree4">Agree</el-checkbox>
+        </el-form-item>
+        <el-button type="primary" @click="startQuestions">Start Answer!</el-button>
+        </el-form>
+    </el-dialog>
     <svg id="main-svg">
     </svg>
-    <el-dialog title="Question Answer" :visible.sync="answer_dialog" width="1300px" @open="openDialog" @closed="closeDialog">
+    <el-dialog title="Question Answer" :visible.sync="answer_dialog" width="1300px" @open="openDialog" @closed="closeDialog" class="form">
         <svg id="answer-svg" width="100%" height="570px">
             <g class="answer-nodes"></g>
             <g class="answer-links"></g>
@@ -27,6 +50,17 @@ export default {
     },
     data() {
         return {
+            // consent form
+            consent_form: false,
+            consent_result: {
+                agree1: false,
+                agree2: false,
+                agree3: false,
+                agree4: false
+            },
+            // tutorial
+            tutorial: false,
+            // questionnarie
             user_id: -1,
             cur_index: -1,
             nxt_index: -1,
@@ -104,6 +138,10 @@ export default {
             this.render();
             this.loadHistory();
             this.enableButton();
+            if(this.cur_pos <= 1 && this.history.length === 0){
+                this.consent_form = true;
+                this.tutorial = true;
+            }
         },
         selected: function() {
             this.itemLayout();
@@ -217,15 +255,20 @@ export default {
                 if(response.data.msg === 'Error') {
                     console.log('Change error:', response.data.detail);
                     if(response.data.detail == 'This is the final question.') {
-                        // that.$message({
-                        //     message: 'Finish all questions successfully!',
-                        //     type: 'success'
-                        // });
-                        // location.href=""
-                        that.$alert('<span>You have completed all the questions, thank you for your participation! Please fill out the following questionnaire, we will issue a thank you money later! \
-                             <a href="https://www.wjx.cn/vm/QEoM9UB.aspx# "> link </a></span>', 'Congratulations!', {
+                        that.$message({
+                            message: 'Finish all questions successfully!',
+                            type: 'success'
+                        });
+                        that.$alert('<p style="font-size:18px;">You have completed all the questions, thank you for your participation!</p> <br /> \
+                            <p style="font-size:18px;">Please <span style="color:red;">click Confirm</span> to fill out the attached questionnaire, we will issue a thank you money later!</p>', 
+                            'Congratulations!', {
                             confirmButtonText: 'Confirm',
-                            dangerouslyUseHTMLString: true
+                            dangerouslyUseHTMLString: true,
+                            callback: (action) => {
+                                if(action === 'confirm') {
+                                    window.open('https://www.wjx.cn/vm/QEoM9UB.aspx# ' ,'_blank');
+                                }
+                            }
                         });
                     }
                     else {
@@ -873,10 +916,19 @@ export default {
             console.log("get answer await")
         },
         closeDialog: function() {
-            this.changeQuestion(this.nxt_index);
-            // setTimeout(() => {
-            //     this.changeQuestion(this.nxt_index);
-            // }, 500);
+            if(this.cur_pos < this.total_length[0])
+                this.changeQuestion(this.nxt_index);
+            else {
+                const that = this;
+                this.$alert('<p style="font-size:17px;">Next, you will enter the <span style="color:red;">formal answering session</span>. Please take each question seriously!</p><br/>\
+                             <p style="font-size:14px;">Tip: When the number of categories is large, it may be useful for you to <span style="color:green;">check more results of different areas.</span></p>', 'Attention please!', {
+                            confirmButtonText: 'Confirm',
+                            dangerouslyUseHTMLString: true,
+                            callback: () => {
+                                that.changeQuestion(that.nxt_index);
+                            }
+                });
+            }
         },
         highlightOption: function(ev, d) {
             if(d.selected == true) return;
@@ -926,6 +978,30 @@ export default {
             }
             this.itemLayout();
             this.itemRender();
+        },
+        startQuestions: function() {
+            if(this.consent_result.agree1 && this.consent_result.agree2 
+                && this.consent_result.agree3 && this.consent_result.agree4) {
+                    this.consent_form = false;
+                }
+            else {
+                this.$alert('<p style="font-size:18px;">Please read the consent form first and <span style="color:red;">agree to the relevant options</span>.</p>', 'Attention', {
+                    confirmButtonText: 'Confirm',
+                    dangerouslyUseHTMLString: true,
+                });
+            }
+        },
+        closeTutorial: function() {
+            const that = this;
+            this.$confirm('<p style="font-size:18px;">Have you finished the tutorial? <\p>\
+                <p style="font-size:18px;"><span style="color:red;">You can\'t return to the video after closing. </span></p>', 'Attention', {
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel',
+                dangerouslyUseHTMLString: true,
+                type: 'warning'
+            }).then(() => {
+                that.tutorial = false;
+            });
         }
     },
     async mounted() {
@@ -945,4 +1021,32 @@ export default {
     align-items: center;
     position: relative;
 }
+
+.form {
+    font-family: Times, "Times New Roman", "楷体";
+}
+
+.form button span {
+    font-family: Times, "Times New Roman", "楷体";
+}
+
+.form .el-dialog__title {
+    font-size: 25px;
+}
+
+.form .el-checkbox__label {
+    font-size: 20px;
+}
+
+.item label {
+    font-size: 20px;
+}
+
+
+.input_video{
+    width: 1120px;
+    height: 630px;
+    margin: 0 auto;
+}
+
 </style>

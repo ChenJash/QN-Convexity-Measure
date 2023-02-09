@@ -1,5 +1,4 @@
 import numpy as np
-import cmaps
 import pickle
 import os, random
 from IPython import embed
