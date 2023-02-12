@@ -48,6 +48,7 @@
 <script>
 import axios from 'axios';
 import * as d3 from 'd3';
+import * as Utils from "../plugins/utils";
 window.d3 = d3;
 export default {
     name: 'QuestionNaire',
@@ -61,6 +62,11 @@ export default {
     },
     data() {
         return {
+            // answer states
+            is_first: false,
+            is_normal: false,
+            finish_all: false,
+            repeat_view: false,
             // consent form
             consent_form: false,
             consent_result: {
@@ -108,7 +114,7 @@ export default {
             buttons: [{
                 id: 0,
                 text: 'Clear',
-                y: 865
+                y: 973
             }, {
                 id: 1,
                 text: 'Previous',
@@ -116,7 +122,7 @@ export default {
             }, {
                 id: 2,
                 text: 'Next',
-                y: 973
+                y: 865
             }],
             // raw_grid: {},
             grids: [],
@@ -141,6 +147,33 @@ export default {
             dialog_texts: [],
             d_grid_width: 200,
             answer_data: [],
+            // break time
+            in_break: false,
+            break_text: [[
+                "Now you have six practice questions. There will be no time measurements.",
+                "Once you have answered the questions, the correct answers and explanations will be displayed.",
+                "To begin the <tspan fill='red'>practice session</tspan>, press the '<tspan fill='red'>Start</tspan>' button."
+            ],[
+                "Next, you will enter the <tspan fill='red'>formal user study</tspan>.",
+                "In the formal user study, the questions will be more difficult than the simulation test.",
+                "Each question may not have a standard answer, and each option has relatively good convexity.",
+                "Rank options by <tspan fill='green'>your understanding of convexity.</tspan> Please take each question seriously!",
+                "To begin the formal user study, press the '<tspan fill='red'>Start</tspan>' button."
+            ], [
+                "You have finished a set of 9 questions.",
+                "You can <tspan fill='green'>take a short break to relax your eyes.</tspan>",
+                " ",
+                "After the rest, please <tspan fill='red'>finish the next set of questions without break</tspan>.",
+                "To begin the formal user study, press the '<tspan fill='red'>Continue</tspan>' button."
+            ], [
+                "You have <tspan fill='red'>completed all the questions</tspan>, thank you for your participation!",
+                "After the statistics are completed, we will pay the thank-you money one after another.",
+                "If you have any questions, please contact: <tspan fill='blue' text-decoration='underline'> <a xlink:href='mailto:jiashu0717c@gmail.com'>jiashu0717c@gmail.com</a></tspan>."
+            ]],
+            tip_text: [
+                "Tip: When the number of categories in a grid layout is large, it may be useful for you",
+                "to <tspan fill='green'>check the convexity of more different categories</tspan>."
+            ]
         };
     },
     watch: {
@@ -150,10 +183,7 @@ export default {
             this.render();
             this.loadHistory();
             this.enableButton();
-            if(this.cur_pos <= 1 && this.history.length === 0){
-                this.consent_form = true;
-                this.tutorial = true;
-            }
+            Utils.end_loading(500);
         },
         selected: function() {
             this.itemLayout();
@@ -214,6 +244,9 @@ export default {
             }).then(function(response) {
                 console.log('Login user id:', response.data.user_id);
                 that.user_id = response.data.user_id;
+                that.is_first = response.data.is_first;
+                that.is_normal = response.data.is_normal;
+                that.finish_all = response.data.finish_all;
             });
         },
         // data fetch functions
@@ -221,7 +254,7 @@ export default {
             const that = this;
             axios.post('/api/hack-data', {
             }).then(function(response) {
-                console.log('Get hack data:', response);
+                // console.log('Get hack data:', response);
                 that.data = response.data;
             });
         },
@@ -233,7 +266,7 @@ export default {
                     console.log('Get data error:', response.data.detail);
                 }
                 else{
-                    console.log('Get data:', response.data);
+                    // console.log('Get data:', response.data);
                     that.data = response.data.data;
                     that.history = response.data.history;
                     that.cur_pos = response.data.cur_pos + 1;
@@ -251,7 +284,7 @@ export default {
                     that.$message.error( 'Submit Error:' + response.data.detail);
                 }
                 else{
-                    console.log('Submit success.');
+                    // console.log('Submit success.');
                     that.$message({
                         message: 'Submit successfully',
                         type: 'success'
@@ -261,6 +294,14 @@ export default {
         },
         changeQuestion: async function(nxt) {
             const that = this;
+            // console.log(this.is_normal, nxt)
+            if(!this.is_normal && nxt == this.total_length[0]) {
+                this.breakTime(1);
+                this.nxt_index = nxt;
+                return;
+            }
+            if(nxt != this.total_length[0] + this.total_length[1])
+                Utils.begin_loading();
             await axios.post('/api/change-question', {
                 index: nxt
             }).then(function(response) {
@@ -278,7 +319,9 @@ export default {
                             dangerouslyUseHTMLString: true,
                             callback: (action) => {
                                 if(action === 'confirm') {
-                                    window.open('https://www.wjx.cn/vm/QEoM9UB.aspx# ' ,'_blank');
+                                    window.open('https://www.wjx.cn/vm/Q03dUrB.aspx#' ,'_blank');
+                                    that.breakTime(3);
+                                    that.finish_all = true;
                                 }
                             }
                         });
@@ -291,7 +334,7 @@ export default {
                     }
                 }
                 else{
-                    console.log('Change success.');
+                    // console.log('Change success.');
                     that.cur_index = nxt;
                 }
             });
@@ -299,7 +342,11 @@ export default {
         loadHistory: function() {
             const history = this.history;
             this.change_result = -1;
-            if(history.length === 0) return;
+            this.repeat_view = true;
+            if(history.length === 0) {
+                this.repeat_view = false;
+                return;
+            }
             history.forEach((item) => {
                 item.color_id = this.select_colors.indexOf(item.color);
                 this.select_state[item.color_id] = true;
@@ -332,6 +379,7 @@ export default {
                 elements.forEach((element, eindex) => {
                     const cell = {};
                     cell.id = eindex;
+                    cell.name = `${this.data.index}-${index}-${eindex}`
                     cell.pos = [i, j].concat();
                     cell.element = element;
                     cell.label = this.data.labels[element];
@@ -484,16 +532,19 @@ export default {
                 .attr('stroke', 'rgb(187,187,187)')
                 .attr('stroke-width', 1);
             this.svg.append('text')
+                .attr('class', 'inside')
                 .text('Sort the following grid layouts by convexity')
                 .attr('x', 81)
                 .attr('y', 120)
                 .attr('font-size', 20);
             this.svg.append('text')
+                .attr('class', 'inside')
                 .text('in descending order:')
                 .attr('x', 81)
                 .attr('y', 147)
                 .attr('font-size', 20);
             this.progress = this.svg.append('text')
+                .attr('class', 'inside')
                 .text('Current progress: ')
                 .attr('x', 1090)
                 .attr('y', 120)
@@ -574,7 +625,7 @@ export default {
                 .attr('fill', d => `rgb(${d.color[0] * 255},${d.color[1] * 255},${d.color[2] * 255})`)
             group.exit()
                 .transition()
-                .duration(animation ? this.remove_duration: 0)
+                .duration(animation ? this.remove_duration / 4: 0)
                 .attr('opacity', 0)
                 .remove()
         },
@@ -632,7 +683,7 @@ export default {
                 .remove();
             let merge_group = grids_group.merge(grids_create);
             let grid_group = merge_group.selectAll('.grid-cell')
-                .data(d => d.cells, c => c.id);
+                .data(d => d.cells, c => c.name);
             this.gridRender(grid_group);
         },
         itemRender: function() {
@@ -847,8 +898,17 @@ export default {
                 .remove();
         },
         enableButton: function(){
+            const button1 = this.svg.selectAll('.qn-buttons').filter(d => d.id === 0);
+            if(!this.finish_all && !this.in_break) {
+                button1.select('rect').attr('fill', 'rgb(255,255,255)');
+                button1.select('text').attr('fill', 'black');
+            }
+            else {
+                button1.select('rect').attr('fill', 'rgba(239,239,239,0.67)');
+                button1.select('text').attr('fill', 'rgba(108,108,108,0.72)');
+            }
             const button2 = this.svg.selectAll('.qn-buttons').filter(d => d.id === 1);
-            if(this.data.index > 0) {
+            if(!this.finish_all && this.data.index > 0) {
                 button2.select('rect').attr('fill', 'rgb(255,255,255)');
                 button2.select('text').attr('fill', 'black');
             }
@@ -857,7 +917,7 @@ export default {
                 button2.select('text').attr('fill', 'rgba(108,108,108,0.72)');
             }
             const button3 = this.svg.selectAll('.qn-buttons').filter(d => d.id === 2);
-            if(this.enable_next) {
+            if(!this.finish_all && this.enable_next) {
                 button3.select('rect').attr('fill', 'rgb(255,255,255)');
                 button3.select('text').attr('fill', 'black');
             }
@@ -865,10 +925,36 @@ export default {
                 button3.select('rect').attr('fill', 'rgba(239,239,239,0.67)');
                 button3.select('text').attr('fill', 'rgba(108,108,108,0.72)');
             }
+            if(!this.finish_all && !this.in_break && this.cur_pos <= this.total_length[0] && this.repeat_view){
+                const answer_button = this.svg.selectAll('.answer-button')
+                    .data([0]);
+                answer_button.enter()
+                    .append('text')
+                    .text('Answer')
+                    .attr('class', 'answer-button')
+                    .attr('text-decoration', 'underline')
+                    .attr('fill', 'red')
+                    .attr('x', 1310)
+                    .attr('y', 820)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 18)
+                    .attr('opacity', 0)
+                    .style('cursor', 'pointer')
+                    .on('click', () => {
+                        this.answer_dialog = true;
+                    })
+                    .transition()
+                    .duration(this.create_duration / 2)
+                    .attr('opacity', 1);
+            }
+            else {
+                this.svg.selectAll('.answer-button').remove();
+            }
         },
         // interaction functions
         highlightButton: function(ev, d) {
-            if(this.data.index === 0 && d.id == 1) return;
+            if(this.in_break && d.id == 0) return;
+            if((this.data.index == undefined || this.data.index === 0) && d.id == 1) return;
             if(!this.enable_next && d.id == 2) return;
             const button = this.svg.selectAll('.qn-buttons').filter(e => e.id === d.id);
             button.select('rect')
@@ -882,6 +968,10 @@ export default {
                 .attr('stroke-width', 1);
         },
         clickButton: async function(ev, d) {
+            if(this.finish_all) return;
+            if(this.in_break && d.id == 0) return;
+            if(this.data.index === 0 && d.id == 1) return;
+            if(!this.enable_next && d.id == 2) return;
             if(d.id == 0){
                 // click 'clear'
                 this.grids.forEach((grid) => {
@@ -895,8 +985,12 @@ export default {
                     .attr('opacity', 0);
                 return;
             }
-            if(this.data.index === 0 && d.id == 1) return;
-            if(!this.enable_next && d.id == 2) return;
+            if(this.in_break && d.id == 1) {
+                if(this.is_first) return;
+                Utils.begin_loading();
+                this.workTime();
+                return;
+            }
             let nxt = this.data.index;
             if(d.id == 1) nxt -= 1;
             else nxt += 1;
@@ -904,10 +998,17 @@ export default {
                 // submit current result
                 await this.submit();
                 this.change_result = -1;
-                if(this.cur_pos <= this.total_length[0] && d.id == 2){
+                if(d.id == 2) {
                     this.nxt_index = nxt;
-                    this.answer_dialog = true;
-                    return;
+                    if(this.cur_pos <= this.total_length[0] && !this.repeat_view){
+                        this.answer_dialog = true;
+                        return;
+                    }
+                    if(!this.in_break && (this.cur_pos - this.total_length[0]) % 9 == 0
+                        && this.cur_pos != this.total_length[0] + this.total_length[1]) {
+                        this.breakTime(2);
+                        return;
+                    }
                 }
             }
             await this.changeQuestion(nxt);
@@ -917,30 +1018,32 @@ export default {
             await axios.post('/api/get-answer', {
             }).then(function(response) {
                 if(response.data.msg === 'Error') {
-                    console.log('Get answer error:', response.data.detail);
+                    // console.log('Get answer error:', response.data.detail);
                     this.answer_dialog = false;
                 }
                 else{
-                    console.log('Get Answer', response.data);
+                    // console.log('Get Answer', response.data);
                     that.answer_data = response.data.answer;
                 }
             });
-            console.log("get answer await")
+            // console.log("get answer await")
         },
         closeDialog: function() {
-            if(this.cur_pos < this.total_length[0])
-                this.changeQuestion(this.nxt_index);
-            else {
-                const that = this;
-                this.$alert('<p style="font-size:17px;">Next, you will enter the <span style="color:red;">formal answering session</span>. Please take each question seriously!</p><br/>\
-                             <p style="font-size:14px;">Tip: When the number of categories is large, it may be useful for you to <span style="color:green;">check more results of different areas.</span></p>', 'Attention please!', {
-                            confirmButtonText: 'Confirm',
-                            dangerouslyUseHTMLString: true,
-                            callback: () => {
-                                that.changeQuestion(that.nxt_index);
-                            }
-                });
-            }
+            if(!this.repeat_view) this.changeQuestion(this.nxt_index);
+            // if(this.cur_pos < this.total_length[0])
+            //     this.changeQuestion(this.nxt_index);
+            // else {
+            //     const that = this;
+            //     this.$alert('<p style="font-size:17px;">Next, you will enter the <span style="color:red;">formal answering session</span>. Please take each question seriously!</p><br/>\
+            //                  <p style="font-size:14px;">Tip: When the number of categories is large, it may be useful for you to <span style="color:green;">check more results of different areas.</span></p>', 'Attention please!', {
+            //                 confirmButtonText: 'Confirm',
+            //                 dangerouslyUseHTMLString: true,
+            //                 callback: () => {
+            //                     that.changeQuestion(that.nxt_index);
+            //                 }
+            //     });
+            //     // this.breakTime();
+            // }
         },
         highlightOption: function(ev, d) {
             if(d.selected == true) return;
@@ -1014,13 +1117,170 @@ export default {
             }).then(() => {
                 that.tutorial = false;
             });
+        },
+        // appended page
+        breakTime: function(use_text=0) {
+            // clear svg
+            this.grids.forEach((grid) => {
+                    grid.selected = false;
+                });
+            this.cur_select = 0;
+            this.selected = [];
+            this.select_state = [false, false, false, false];
+            this.svg.selectAll('.grid-group')
+                .select('.boundary')
+                .attr('opacity', 0);
+            d3.selectAll(".grid-group")
+                .remove();
+            // show table
+            let used_text = [];
+            used_text = this.break_text[use_text];
+            // console.log(use_text, this.break_text[use_text])
+            let start_y = use_text == 0 ? 350: 260;
+            if(use_text == 2) start_y = 310;
+            if(use_text == 3) start_y = 400;
+            let button_y = use_text != 1? 620: 680;
+            if(use_text == 0) button_y = 580;
+            const str_data = used_text.map((d, index) => {
+                return {
+                    id: index,
+                    value: d,
+                    x: 700,
+                    y: start_y + 40 * index
+            }});
+            // show text
+            const table_svg = this.svg.append('g')
+                .attr('class', 'table-svg')
+            const that = this;
+            table_svg.selectAll('.break-text')
+                .data(str_data)
+                .enter()
+                .append('text')
+                .attr('class', 'break-text')
+                .html(d => d.value)
+                .attr('x', d => d.x)
+                .attr('y', d => d.y)
+                .attr('font-size', 25)
+                // .attr('font-weight', 'bold')
+                .attr('text-anchor', 'middle')
+                .attr('opacity', 0)
+                .transition()
+                .duration(this.create_duration)
+                .attr('opacity', 1)
+            if(use_text == 1) {
+                const tip_data = this.tip_text.map((d, index) => {
+                    return {
+                        id: index,
+                        value: d,
+                        x: 700,
+                        y: 500 + 35 * index
+                }});
+                table_svg.selectAll('.tip-text')
+                    .data(tip_data)
+                    .enter()
+                    .append('text')
+                    .attr('class', 'tip-text')
+                    .html(d => d.value)
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y)
+                    .attr('font-size', 23)
+                    // .attr('font-weight', 'bold')
+                    .attr('text-anchor', 'middle')
+                    .attr('opacity', 0)
+                    .transition()
+                    .duration(this.create_duration)
+                    .attr('opacity', 1)
+            }
+            // show button
+            if(use_text != 3) {
+                table_svg.append('g')
+                    .attr('class', 'break-button')
+                    .attr('transform', `translate(700, ${button_y})`)
+                    .style('cursor', 'pointer')
+                    .on('mouseover', () => {
+                        table_svg.select('g.break-button')
+                            .select('rect')
+                            .attr('stroke', 'blue');
+                    })
+                    .on('mouseout', () => {
+                        table_svg.select('g.break-button')
+                            .select('rect')
+                            .attr('stroke', 'rgb(187,187,187)');
+                    })
+                    .on('click', () => {
+                        // that.$message({
+                        //         message: '功能测试中，请等待后续发布',
+                        //         type: 'warning'
+                        //     }); 
+                        Utils.begin_loading();
+                        that.workTime(use_text);
+                    })
+                    .attr('opacity', 0)
+                    .transition()
+                    .duration(this.create_duration)
+                    .attr('opacity', 1);
+                table_svg.select('g.break-button')
+                    .append('rect')
+                    .attr('x', -80)
+                    .attr('y', -20)
+                    .attr('width', 160)
+                    .attr('height', 40)
+                    .attr('stroke', 'rgb(187,187,187)')
+                    .attr('stroke-width', 2)
+                    .attr('fill', 'red')
+                table_svg.select('g.break-button')
+                    .append('text')
+                    .text(use_text < 2 ? 'Start': 'Continue')
+                    .attr('x', 0)
+                    .attr('y', 7)
+                    .attr('font-size', 22)
+                    .attr('font-weight', 'bold')
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', 'white')
+            }
+            this.svg.selectAll('text.inside')
+                .attr('opacity', 0)
+            // change state
+            this.in_break = true;
+        },
+        workTime: function(type=0) {
+            // delete table
+            this.svg.select('g.table-svg')
+                .transition()
+                .duration(this.remove_duration)
+                .attr('opacity', 0)
+                .remove();
+            this.svg.selectAll('text.inside')
+                .attr('opacity', 1)
+            this.in_break = false;
+            // console.log(this.nxt_index)
+            if(type == 0) {
+                this.getData();
+                return;
+            }
+            if(type == 1) {
+                this.is_normal = true;
+            }
+            this.changeQuestion(this.nxt_index);
         }
     },
     async mounted() {
         await this.login();
+        this.initRender();
+        if(this.is_first) {
+            this.breakTime();
+            this.enableButton();
+            this.consent_form = true;
+            this.tutorial = true;
+            return;
+        }
+        if(this.finish_all) {
+            this.breakTime(3);
+            this.enableButton();
+            return;
+        }
         // this.getHackData();
         this.getData();
-        this.initRender();
     },
 }
 </script>

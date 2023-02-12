@@ -14,10 +14,10 @@ class DataSaver(object):
         self.select_load_query = "SELECT * FROM load WHERE user_session = {} AND question_id = {};"
         self.update_load_query = "UPDATE load SET load_seq = '{}' WHERE user_session = {} AND question_id = {};"
         self.insert_submit_query = """INSERT INTO submit(user_session, question_id, question_name, submit_date, 
-                                rank_T, rank_S, rank_E, rank_C, colors) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);"""
-        self.select_submit_query = "SELECT * FROM submit WHERE user_session = {} AND question_id = {};"
-        self.select_result_query = "SELECT submit_date, rank_T, rank_S, rank_E, rank_C, colors FROM submit WHERE user_session = {} AND question_id = {};"
-        self.select_all_results = "SELECT user_session, question_id, question_name, submit_date, rank_T, rank_S, rank_E, rank_C FROM submit;"
+                                rank_T, rank_S, rank_E, rank_C, colors, is_timestamp) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
+        self.select_submit_query = "SELECT * FROM submit WHERE user_session = {} AND question_id = {} AND is_timestamp = 0;"
+        self.select_result_query = "SELECT submit_date, rank_T, rank_S, rank_E, rank_C, colors FROM submit WHERE user_session = {} AND question_id = {} AND is_timestamp = 0;"
+        self.select_all_results = "SELECT user_session, question_id, question_name, submit_date, rank_T, rank_S, rank_E, rank_C, is_timestamp FROM submit;"
         self.select_all_users = "SELECT user_session, finished_num FROM user;"
         self.question_num = []
         self.sequence = ["T", "S", "E", "C"]
@@ -56,7 +56,7 @@ class DataSaver(object):
         cur.execute("""CREATE TABLE submit(submit_id integer primary key autoincrement, 
                 question_id integer not null, question_name text not null, submit_date real not null,
                 rank_T int not null, rank_E int not null, rank_C int not null, rank_S int not null,
-                colors text not null, user_session integer not null, foreign key(user_session) references user(user_session));
+                colors text not null, is_timestamp not null, user_session integer not null, foreign key(user_session) references user(user_session));
         """)
         db.commit()
 
@@ -102,6 +102,14 @@ class DataSaver(object):
             seq = rows[0][4]
             return list(map(int, seq.split(","))), rows[0][2]
         return [], -1
+    
+    def query_user_finish(self, db: sqlite3.Connection, session_id):
+        cur = db.cursor()
+        cur.execute(self.select_user_finished_num_query.format(session_id))
+        rows = cur.fetchall()
+        if len(rows) > 0:
+            return rows[0][0]
+        return -1
 
     def load_data(self, db: sqlite3.Connection, question, session_id) -> list:
         cur = db.cursor()
@@ -116,6 +124,7 @@ class DataSaver(object):
         else:
             cur.execute(self.insert_load_query, (session_id, question["id"], question["name"], seq_str))
         db.commit()
+        self.add_timestamp(db, session_id)
         return load_seq
     
     def submit_result(self, db: sqlite3.Connection, question, session_id, result) -> bool:
@@ -149,7 +158,14 @@ class DataSaver(object):
             rank += 1
         color_str = ",".join(color_tsec) 
         cur.execute(self.insert_submit_query, (session_id, question["id"], question["name"], time.time(),
-            rank_tsec[0], rank_tsec[1], rank_tsec[2], rank_tsec[3], color_str))
+            rank_tsec[0], rank_tsec[1], rank_tsec[2], rank_tsec[3], color_str, 0))
+        db.commit()
+        return True
+    
+    def add_timestamp(self, db: sqlite3.Connection, session_id) -> bool:
+        cur = db.cursor()
+        cur.execute(self.insert_submit_query, (session_id, -1, "/", time.time(),
+            -1, -1, -1, -1, "/", 1))
         db.commit()
         return True
     

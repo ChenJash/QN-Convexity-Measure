@@ -49,7 +49,13 @@ def login():
         user_id = nxt_user_id
         nxt_user_id += 1
         session["user_id"] = user_id
-    return jsonify({"user_id": user_id})
+    finished_num = datasaver.query_user_finish(get_db(), user_id)
+    return jsonify({
+        "user_id": user_id, 
+        "is_first": finished_num < 1, 
+        "is_normal": finished_num > datasaver.question_num[0],
+        "finish_all": finished_num == datasaver.question_num[0] + datasaver.question_num[1]
+    })
 
 @app.route("/api/hack-data", methods=["POST"])
 def hack_data():
@@ -127,4 +133,18 @@ def get_answer():
         return jsonify(ret)
     ret["msg"] = "Success"
     ret["answer"] = detail
+    return jsonify(ret)
+
+@app.route("/api/add-timestamp", methods=["POST"])
+def add_timestamp():
+    ret = {}
+    user_id = session.get("user_id", -1)
+    if user_id == -1:
+        ret["msg"] = "Error"
+        ret["detail"] = "Please login first"
+        return jsonify(ret)
+    
+    datasaver.add_timestamp(get_db(), user_id)
+    ret["msg"] = "Success"
+    ret["detail"] = "Add time stamp successfully."
     return jsonify(ret)

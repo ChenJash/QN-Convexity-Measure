@@ -6,7 +6,7 @@ module.exports = defineConfig({
       '/api': {
         target: "http://localhost:5000/",
         changeOrigin: true,
-        ws: false,
+        // ws: false,
         pathRewrite:{
           '^api': ''
         },
@@ -14,9 +14,9 @@ module.exports = defineConfig({
     },
     host: '0.0.0.0',
     port: 8080,
-    client: {
-      webSocketURL: 'ws://127.0.0.1:8081/ws',
-    },
+    // client: {
+    //   webSocketURL: 'ws://127.0.0.1:8081/ws',
+    // },
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
