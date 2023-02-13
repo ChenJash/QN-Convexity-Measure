@@ -1,43 +1,43 @@
 <template>
   <div class="question-naire">
-    <el-dialog title="Tutorial" :visible.sync="tutorial" width="1300px" class="form" :before-close="closeTutorial">
+    <el-dialog title="教程" :visible.sync="tutorial" width="1300px" class="form" :before-close="closeTutorial">
         <video width="1250" height="630" controls>
             <source src="../assets/mp4/grid_tutorial_v2.mp4" />
         </video>
     </el-dialog>
-    <el-dialog title="Consent Form" :visible.sync="consent_form" width="1300px" :show-close="false" 
+    <el-dialog title="知情同意书" :visible.sync="consent_form" width="1100px" :show-close="false" 
             :close-on-press-escape="false" :close-on-click-modal="false" class="form" id="consent">
         
         <el-form label-position="left" label-width="1000px" :model="consent_result">
         <el-form-item class="item">
-            <template slot="label">1.	I confirm that I have read and have understood the <span id="sheet-link" @click="info_sheet=true">information sheet</span> dated February 9, 2023 for the above study. I have had the opportunity to consider the information, ask questions and have had these answered satisfactorily.</template>
-            <el-checkbox v-model="consent_result.agree1">Agree</el-checkbox>
+            <template slot="label">1.	  本人确认已于2023年2月15日阅读并了解了该项目<span id="sheet-link" @click="info_sheet=true">相关研究信息</span> ，并已从项目负责人处得到考虑、提问的机会，且得到满意答复。  </template>
+            <el-checkbox v-model="consent_result.agree1">同意</el-checkbox>
         </el-form-item>
-        <el-form-item class="item" label="2.	I understand that my participation is voluntary and that I am free to withdraw at any time without giving any reason, without my rights being affected.">
-            <el-checkbox v-model="consent_result.agree2">Agree</el-checkbox>
+        <el-form-item class="item" label="2.	本人知晓对该项目的参与为自愿，且可以随时退出，无需任何理由，同时权利不会受任何影响。">
+            <el-checkbox v-model="consent_result.agree2">同意</el-checkbox>
         </el-form-item>
-        <el-form-item class="item" label="3.	I understand that I can at any time ask for access to the information I provide and I can also request the destruction of that information if I wish.">
-            <el-checkbox v-model="consent_result.agree3">Agree</el-checkbox>
+        <el-form-item class="item" label="3.	本人知晓可随时要求获取或销毁所提供的个人信息。">
+            <el-checkbox v-model="consent_result.agree3">同意</el-checkbox>
         </el-form-item>
-        <el-form-item class="item" label="4.	I agree to take part in the above study.">
-            <el-checkbox v-model="consent_result.agree4">Agree</el-checkbox>
+        <el-form-item class="item" label="4.	本人同意参加此项研究。">
+            <el-checkbox v-model="consent_result.agree4">同意</el-checkbox>
         </el-form-item>
-        <el-button type="primary" @click="startQuestions">Start Answer!</el-button>
+        <el-button type="primary" @click="startQuestions">确定</el-button>
         </el-form>
     </el-dialog>
-    <el-dialog title="Participant Information Sheet" :visible.sync="info_sheet" width="1300px" class="form" id="sheet">
-        <p>You are being invited to participate in a research study. Before you decide whether to participate, it is important for you to understand why the research is being done and what it will involve. Please take time to read the following information carefully and feel free to ask us if you would like more information or if there is anything that you do not understand. Please also feel free to discuss this with your friends, relatives, and anyone else you wish. We would like to stress that you do not have to accept this invitation and should only agree to take part if you want to.</p>
-        <p>The purpose of the study is to develop a grid layout method for better preserving cluster structures. According to Gestalt principles, people perceive convex shapes ahead of concave shapes. It is then desired to generate the layout result that makes each cluster more convex. This process requires a convexity measure. However, there is no yet generally accepted convexity measure, and we want to know which measure is more consistent with human perception. To do this, we need to have participants, like yourself, to see a set of grid layout results and then sort the results based on the convexity.</p>
-        <p>While you perform the tasks, your interaction with the system will be in a safe environment and supervised by the professors or research students doing the project. The researchers will be always on the side to only observe and answer any questions and concerns you may have and to make sure all things are running as intended and that you are always comfortable and feeling safe at all times. </p>
-        <p>The system will record automatically your sort results for later analyses. In addition, you may be asked to complete some simple questionnaires and answer some questions about your general experience and feelings about comparing the convexity of different grid layouts. The questions will not ask any personal information about you and if you feel uncomfortable with any question, it is quite alright if you choose not to answer. The user study will last about 1 hours.</p>
-        <p>The data collected will help us understand how to design better grid layout algorithm that preserve the convexity of cluster shapes and will allow us to write reports and publish them as academic papers. If any reports and papers are published, they will not contain any information that can be used to identify any of the participants involved in our experiment.</p>
-        <p>There will be other participants who will likely be THU and XJTLU students and their acquaintances. One of the benefits you and other participants will gain is to experience state-of-the-art technologies, like visualization, grid layout, and convexity measures.</p>
-        <p>We want to make it clear to all our participants that they are not the ones being tested, but that we are only assessing the perceptions on convexity. Your participation is entirely voluntary, and you can stop at any time. </p>
-        <p>If you are unhappy or if there is a problem, please feel free to let us know by contacting Dr. Lingyun Yu and we will try to help. If you remain unhappy or have a complaint with which you feel you cannot come to us, then you should contact the Chair of the Research Ethics Sub-Committee on ethics@xjtlu.edu.cn with enough details to help identify the project.</p>
+    <el-dialog title="参与者须知" :visible.sync="info_sheet" width="1300px" class="form" id="sheet">
+        <p>您正在被邀请参加一项研究。 在您决定是否参与之前，了解为什么要进行研究以及研究将涉及什么对您来说很重要。 请花时间仔细阅读以下信息，如果您需要更多信息或有任何不明白之处，请随时询问我们。 也请随时与您的朋友、亲戚以及您希望的任何其他人讨论此事。 我们想强调的是，研究并非强制性的，只有在您愿意的情况下才应同意参加。</p>
+        <p>该研究的目的是开发一种网格布局方法，以更好地保留集类簇结构。 根据格式塔原则，人们对于凸形状的感知优于凹图形， 因此我们希望生成使每个簇更凸的布局结果。 这个过程需要一个凸性度量，然而，目前在网格布局中还没有普遍接受的凸度度量。我们想知道哪种度量更符合人类的感知，为此，我们需要让参与者像您一样看到一组网格布局结果，然后根据凸性对结果进行排序。</p>
+        <p>当您执行任务时，您与系统的交互将在安全的环境中进行。 研究人员将始终在一旁观察和回答您可能遇到的任何问题和疑虑，并确保所有事情都按预期进行，并且您始终感到舒适和安全。</p>
+        <p>系统会自动记录您的排序结果以供日后分析。 此外，您可能会被要求完成一些简单的问卷调查，并回答一些关于您对比较不同网格布局的凸度的一般经验和感受的问题。 这些问题不会询问您的任何个人信息，如果您对任何问题感到不舒服，您选择不回答也没关系。 用户研究将持续约 1 小时。</p>
+        <p>收集的数据将帮助我们了解如何设计更好的网格布局算法来保持类簇形状的凸性，并使我们能够撰写报告并将其作为学术论文发表。 如果发表任何报告和论文，它们将不会包含任何可用于识别参与我们实验的任何参与者的信息。</p>
+        <p>其他参与者可能是 THU 和 XJTLU 的学生以及他们的熟人。 您和其他参与者将获得的好处之一是体验最先进的技术，例如可视化、网格布局和凸度测量。</p>
+        <p>我们想向所有参与者表明，他们不是被测试的人，我们只是在评估对凸性的看法。 您的参与完全是自愿的，您可以随时停止。</p>
+        <p>如果您不满意或有任何问题，请随时联系俞凌云老师，我们将尽力提供帮助。 如果您仍然不满意或有您觉得不能来找我们的投诉，那么您可以通过 <a href="mailto:ethics@xjtlu.edu.cn">ethics@xjtlu.edu.cn</a> 联系研究伦理小组委员会主席，并提供足够的详细信息以帮助确定项目。</p>
     </el-dialog>
     <svg id="main-svg">
     </svg>
-    <el-dialog title="Question Answer" :visible.sync="answer_dialog" width="1300px" @open="openDialog" @closed="closeDialog" class="form">
+    <el-dialog title="习题解答" :visible.sync="answer_dialog" width="1300px" @open="openDialog" @closed="closeDialog" class="form">
         <svg id="answer-svg" width="100%" height="570px">
             <g class="answer-nodes"></g>
             <g class="answer-links"></g>
@@ -114,15 +114,15 @@ export default {
             select_state: [false, false, false, false],
             buttons: [{
                 id: 0,
-                text: 'Clear',
+                text: '清空作答',
                 y: 973
             }, {
                 id: 1,
-                text: 'Previous',
+                text: '上一题',
                 y: 919
             }, {
                 id: 2,
-                text: 'Next',
+                text: '下一题',
                 y: 865
             }],
             // raw_grid: {},
@@ -152,33 +152,33 @@ export default {
             // break time
             in_break: false,
             break_text: [[
-                "Now you have six practice questions. There will be no time measurements.",
-                "Once you have answered the questions, the correct answers and explanations will be displayed.",
-                "To begin the <tspan fill='red'>practice session</tspan>, press the '<tspan fill='red'>Start</tspan>' button."
+                "现在，有6道模拟测试题供您练习。练习题中没有任何时间要求。",
+                "每道练习题被作答后，我们会为您展示题目的正确答案和对应的解释。",
+                "如果您已准备就绪，请点击 <tspan fill='red'>“开始”</tspan> 按钮, 进入<tspan fill='red'>模拟测试</tspan>。"
             ],[
-                "Next, you will enter the <tspan fill='red'>formal user study</tspan>. In total, there are 36 questions",
-                "that are divided into 4 groups. After each group, you may take a brief break.  ",
-                "However, please ensure you <tspan fill='red'>complete all questions within the group without interruption</tspan>.",
-                "In the formal user study, the questions will be more difficult than the simulation test.",
-                "Each question may not have a standard answer, and each option has relatively good convexity.",
-                "Rank options by <tspan fill='green'>your understanding of convexity.</tspan> Please take each question seriously!",
-                
-                "To begin the formal user study, press the '<tspan fill='red'>Start</tspan>' button."
+                "接下来，您将进入<tspan fill='red'>正式作答环节</tspan>。总共包含36道题目，平均分为4组。",
+                "在完成每一组的作答后，您都可以稍做休息，再继续进行下一组的作答。",
+                "但是，请确保您在每一组的作答中<tspan fill='red'>不间断地完成组内的所有问题</tspan>。",
+                "正式作答中，您遇到的题目会比模拟测试的题目更加困难。",
+                "每一个问题可能没有标准答案，每一个选项都具有相对不差的凸性。",
+                "按照自己 <tspan fill='green'>对于凸性的理解</tspan> 进行排序即可， 请您务必认真对待每一道题!", 
+                "如果您已准备就绪，请点击 <tspan fill='red'>“开始”</tspan> 按钮, 进入<tspan fill='red'>正式作答</tspan>。"
             ], [
-                "You have just finished a group of 9 questions.",
-                "You can <tspan fill='green'>take a short break to relax your eyes.</tspan>",
+                "您刚刚完成了一组 9 道题目。",
+                "您可以<tspan fill='green'>稍作休息，放松一下自己的眼睛</tspan>。",
                 " ",
-                "After the rest, please <tspan fill='red'>finish the next 9 questions without interruption</tspan>.",
-                "To continue, press the '<tspan fill='red'>Continue</tspan>' button."
+                "充分休息后，请您<tspan fill='red'>不间断地完成下一组的所有题目</tspan>。",
+                "如果您已准备就绪，请点击 <tspan fill='red'>“继续”</tspan> 按钮进入作答。"
             ], [
-                "You have <tspan fill='red'>completed all the questions</tspan>, thank you for your participation!",
-                "After the statistics are completed, we will pay the thank-you money one after another.",
-                "If you have any questions, please contact: <tspan fill='blue' text-decoration='underline'> <a xlink:href='mailto:jiashu0717c@gmail.com'>jiashu0717c@gmail.com</a></tspan>."
+                "您已完成<tspan fill='red'>全部问题的作答</tspan>, 衷心感谢您的参与！",
+                "在信息统计完成后，我们将会陆续发放答谢金！",
+                "如果您有与本次调研相关的问题，请联系：<tspan fill='blue' text-decoration='underline'> <a xlink:href='mailto:jiashu0717c@gmail.com'>jiashu0717c@gmail.com</a></tspan>."
             ]],
             tip_text: [
-                // " ",
-                "Tip: When the number of categories in a grid layout is large, it may be useful for you",
-                "to <tspan fill='green'>check the convexity of more different categories</tspan>."
+                "小提示： 当网格布局中出现的类别数量较多时，尝试<tspan fill='green'>检查更多不同的类别形状</tspan>，",
+                "这能够帮助您更好地判断网格布局整体的凸性。",
+                // "Tip: When the number of categories in a grid layout is large, it may be useful for you",
+                // "to <tspan fill='green'>check the convexity of more different categories</tspan>."
             ]
         };
     },
@@ -215,26 +215,26 @@ export default {
             // update progress
             let pos = this.cur_pos;
             let total = this.total_length[0];
-            let state = "(simulation)";
-            let delta_x = 1040;
+            let state = "(模拟测试) ";
+            let delta_x = 1090;
             if(this.cur_pos > total) {
                 pos -= total;
                 total = this.total_length[1];
                 state = "";
-                delta_x = 1090
+                delta_x = 1170
             }
-            this.progress.text(`Current progress ${state}: ${pos} / ${total}`)
-                .attr('x', delta_x);
+            this.progress.text(`当前进度 ${state}:  ${" "} ${pos} / ${total}`)
+                .attr('x', delta_x)
 
             // update button3
             const button3 = this.svg.selectAll('.qn-buttons').filter(d => d.id === 2);
             if(pos == total && total == this.total_length[1]) {
                 button3.select("text")
-                    .text("Submit");
+                    .text("提交");
             }
             else {
                 button3.select("text")
-                    .text("Next");
+                    .text("下一题");
             }
         },
         // answer_data: function() {
@@ -292,7 +292,7 @@ export default {
                 else{
                     // console.log('Submit success.');
                     that.$message({
-                        message: 'Submit successfully',
+                        message: '提交成功！',
                         type: 'success'
                     });
                 }
@@ -318,10 +318,10 @@ export default {
                             message: 'Finish all questions successfully!',
                             type: 'success'
                         });
-                        that.$alert('<p style="font-size:18px;">You have completed all the questions, thank you for your participation!</p> <br /> \
-                            <p style="font-size:18px;">Please <span style="color:red;">click Confirm</span> to fill out the attached questionnaire, we will issue a thank you money later!</p>', 
-                            'Congratulations!', {
-                            confirmButtonText: 'Confirm',
+                        that.$alert('<p style="font-size:18px;">您已完成全部问题的作答，衷心感谢您的参与</p> <br /> \
+                            <p style="font-size:18px;">请您<span style="color:red;">点击“确认”按钮</span> 填写附加问卷，我们将在后续发放感谢金!</p>', 
+                            '恭喜!', {
+                            confirmButtonText: '确认',
                             dangerouslyUseHTMLString: true,
                             callback: (action) => {
                                 if(action === 'confirm') {
@@ -486,8 +486,8 @@ export default {
             }
             this.dialog_links = links;
 
-            const xstart = 39;
-            const ystart = 405, deltay = 37;
+            const xstart = 72;
+            const ystart = 365, deltay = 37;
             const rgb = function(rgblist) {
                 return `rgb(${rgblist[0]}, ${rgblist[1]}, ${rgblist[2]})`;
             }
@@ -496,20 +496,22 @@ export default {
                 value = value.replace(/\[2\]/g, `${nodes[1].option}`);
                 value = value.replace(/\[3\]/g, `${nodes[2].option}`);
                 value = value.replace(/\[4\]/g, `${nodes[3].option}`);
-                value = value.replace(/Category 1/g, `<tspan fill="${rgb(this.tp_colors[0])}">Category 1</tspan>`);
-                value = value.replace(/Categories 1/g, `<tspan fill="${rgb(this.tp_colors[0])}" >Categories 1</tspan>`);
-                value = value.replace(/blue/g, `<tspan fill="${rgb(this.tp_colors[0])}" >blue</tspan>`);
-                value = value.replace(/Category 2/g, `<tspan fill="${rgb(this.tp_colors[1])}" >Category 2</tspan>`);
-                value = value.replace(/2, and/g, `<tspan fill="${rgb(this.tp_colors[1])}" >2</tspan>, and`);
-                value = value.replace(/red/g, `<tspan fill="${rgb(this.tp_colors[1])}" >red</tspan>`);
+                value = value.replace(/类别 1/g, `<tspan fill="${rgb(this.tp_colors[0])}">类别 1</tspan>`);
+                value = value.replace(/类别 1/g, `<tspan fill="${rgb(this.tp_colors[0])}" >类别 1</tspan>`);
+                value = value.replace(/蓝色/g, `<tspan fill="${rgb(this.tp_colors[0])}" >蓝色</tspan>`);
+                value = value.replace(/类别 2/g, `<tspan fill="${rgb(this.tp_colors[1])}" >类别 2</tspan>`);
+                value = value.replace(/2 和/g, `<tspan fill="${rgb(this.tp_colors[1])}" >2</tspan> 和`);
+                value = value.replace(/红色/g, `<tspan fill="${rgb(this.tp_colors[1])}" >红色</tspan>`);
+                value = value.replace(/、2/g, `、<tspan fill="${rgb(this.tp_colors[1])}" >2</tspan>`);
                 if(this.data.colors[2] !== undefined) {
-                    value = value.replace(/Category 3/g, `<tspan fill="${rgb(this.tp_colors[2])}" >Category 3</tspan>`);
-                    value = value.replace(/and 3/g, `and <tspan fill="${rgb(this.tp_colors[2])}" >3</tspan>, and`);
-                    value = value.replace(/green/g, `<tspan fill="${rgb(this.tp_colors[2])}" >green</tspan>`);
+                    value = value.replace(/类别 3/g, `<tspan fill="${rgb(this.tp_colors[2])}" >类别 3</tspan>`);
+                    value = value.replace(/和 3/g, `和 <tspan fill="${rgb(this.tp_colors[2])}" >3</tspan>`);
+                    value = value.replace(/绿色/g, `<tspan fill="${rgb(this.tp_colors[2])}" >绿色</tspan>`);
                 }
                 if(this.data.colors[3] !== undefined) {
-                    value = value.replace(/Category 4/g, `<tspan fill="${rgb(this.tp_colors[3])}" >Category 4</tspan>`);
-                    value = value.replace(/yellow/g, `<tspan fill="${rgb(this.tp_colors[3])}" >yellow</tspan>`);
+                    value = value.replace(/类别 4/g, `<tspan fill="${rgb(this.tp_colors[3])}" >类别 4</tspan>`);
+                    value = value.replace(/黄色/g, `<tspan fill="${rgb(this.tp_colors[3])}" >黄色</tspan>`);
+                    value = value.replace(/、4/g, `、<tspan fill="${rgb(this.tp_colors[3])}" >4</tspan>`);
                 }
                 return {
                     value: value,
@@ -525,7 +527,9 @@ export default {
                 .attr('height', 1024);
             // background
             this.svg.append('text')
-                .text('Judge Convexity of Grid Layouts')
+                .text('网格布局中的凸性')
+                .attr('font-family', 'Times, "Times New Roman", "楷体"')
+                .attr('font-weight', 'bold')
                 .attr('x', 57)
                 .attr('y', 51)
                 .attr('font-size', 28);
@@ -541,19 +545,23 @@ export default {
                 .attr('stroke-width', 1);
             this.svg.append('text')
                 .attr('class', 'inside')
-                .text('Sort the following grid layouts by convexity')
+                .text('请根据凸性从好到差的顺序')
+                .attr('font-family', 'Times, "Times New Roman", "楷体"')
                 .attr('x', 81)
                 .attr('y', 120)
                 .attr('font-size', 20);
             this.svg.append('text')
                 .attr('class', 'inside')
-                .text('in descending order:')
+                .text('排列以下网格布局：')
+                .attr('font-family', 'Times, "Times New Roman", "楷体"')
                 .attr('x', 81)
                 .attr('y', 147)
                 .attr('font-size', 20);
             this.progress = this.svg.append('text')
                 .attr('class', 'inside')
-                .text('Current progress: ')
+                .text('当前进度: ')
+                .attr('font-family', 'Times, "Times New Roman", "楷体"')
+                .attr('xml:space', 'preserve')
                 .attr('x', 1090)
                 .attr('y', 120)
                 .attr('font-size', 20);
@@ -598,6 +606,7 @@ export default {
                 .attr('stroke-width', 1);
             button.append('text')
                 .text(d => d.text)
+                .attr('font-family', 'Times, "Times New Roman", "楷体"')
                 .attr('x', 71)
                 .attr('y', 26)
                 .attr('font-size', 18)
@@ -617,7 +626,7 @@ export default {
                 .attr('width', d => d.width)
                 .attr('height', d => d.width)
                 .attr('fill', d => `rgb(${d.color[0] * 255},${d.color[1] * 255},${d.color[2] * 255})`)
-                .attr('stroke', 'gray')
+                .attr('stroke', 'white')
                 .attr('stroke-width', 0.2)
                 .attr('opacity', 0)
                 .transition()
@@ -669,6 +678,7 @@ export default {
                 .on('click', this.clickOption);
             grids_create.append('text')
                 .text(d => `${d.option.id}.`)
+                .attr('font-family', 'Times, "Times New Roman", "楷体"')
                 .attr('x', -30)
                 .attr('y', 15)
                 .attr('font-size', 20);
@@ -761,6 +771,7 @@ export default {
                 .attr('fill', 'white');
             item_create.append('text')
                 .text(d => d.option)
+                .attr('font-family', 'Times, "Times New Roman", "楷体"')
                 .attr('x', 67)
                 .attr('y', 30)
                 .attr('fill', d => d.color)
@@ -832,28 +843,42 @@ export default {
                 .attr('class', 'answer-node')
                 .attr('transform', d => `translate(${d.x}, ${d.y})`);
             create.append('rect')
+                .attr('class', 'boundary')
                 .attr('x', 0)
                 .attr('y', 0)
                 .attr('width', d => d.width)
                 .attr('height', d => d.width)
-                .attr('stroke', d => d.color)
-                .attr('stroke-width', 15)
+                .attr('stroke', d => d.answer_right ? 'black': 'red')
+                .attr('stroke-width', d => d.answer_right ? 5 : 8)
                 .attr('fill', 'None');
             create.append('text')
+                .attr('class', 'option-name')
                 .text(d => d.option)
                 .attr('x', -5)
                 .attr('y', -13)
                 .attr('font-size', 20)
-                .attr('fill', d => d.color);
+                .attr('font-weight', d => d.answer_right ? 'normal' :'bold')
+                .attr('fill', d => d.answer_right ? 'black': 'red');
             create.append('text')
                 .attr('class', 'wrong-answer')
                 .attr('x', d => d.width + 14)
                 .attr('y', d => d.width + 25)
-                .text('▲ Your answer is wrong.')
+                .text('▲ 您的答案不正确')
                 .attr('fill', 'red')
                 .attr('font-size', 18)
                 .attr('opacity', d => d.answer_right ? 0: 1)
                 .attr('text-anchor', 'end');
+
+            nodes.select('rect.boundary')
+                .transition()
+                .duration(this.update_duration / 2)
+                .attr('stroke', d => d.answer_right ? 'black': 'red')
+                .attr('stroke-width', d => d.answer_right ? 5 : 8);
+            nodes.select('text.option-name')
+                .transition()
+                .duration(this.update_duration / 2)
+                .attr('font-weight', d => d.answer_right ? 'normal' :'bold')
+                .attr('fill', d => d.answer_right ? 'black': 'red');
             nodes.select('text.wrong-answer')
                 .attr('opacity', d => d.answer_right ? 0: 1);
             nodes.exit()
@@ -865,18 +890,26 @@ export default {
             this.gridRender(grids_group, false);
             
             // render links
+            this.selected.forEach((d, i, a) => {
+                if(i != 0) {
+                    if(a[i-1].equal[1] && a[i].equal[0]) {
+                        this.dialog_links[i-1].answer_right = false;
+                    }
+                    else this.dialog_links[i-1].answer_right = true;
+                }
+            })
             const link_drawer = this.d_svg.select('g.answer-links');
             const links = link_drawer.selectAll('.answer-link')
                 .data(this.dialog_links, d => d.names);
             const link_create = links.enter().append('g')
-                .attr('class', 'link-group')
+                .attr('class', 'answer-link')
                 .attr('transform', d => `translate(${d.x}, ${d.y})`);
             link_create.append('circle')
                 .attr('cx', 0)
                 .attr('cy', 0)
                 .attr('r', 22)
-                .attr('stroke', 'rgba(108,108,108, 0.57)')
-                .attr('stroke-width', 1)
+                .attr('stroke', d => d.answer_right ? 'rgba(108,108,108, 0.57)' : 'red')
+                .attr('stroke-width', d => d.answer_right ? 1 : 2)
                 .attr('fill', 'rgba(254,250,131,0.73)');
             link_create.append('text')
                 .text(d => d.value)
@@ -887,69 +920,74 @@ export default {
                 .attr('text-anchor', 'middle')
                 .attr('font-weight', 'bold')
                 .attr('fill', '#9A9A9A');
+            links.select('circle')
+                .transition()
+                .duration(this.update_duration / 2)
+                .attr('stroke', d => d.answer_right ? 'rgba(108,108,108, 0.57)' : 'red')
+                .attr('stroke-width', d => d.answer_right ? 1 : 2)
             links.exit()
                 .attr('opacity', 0)
                 .remove();
             
             // render texts
-            const wrong_num = this.dialog_nodes.filter(d => !d.answer_right).length;
-            let state_str = 'exact';
-            if(wrong_num > 0) state_str = 'partly wrong';
-            if(wrong_num == 4) state_str = 'wrong';
-            let true_str = ' ';
-            this.dialog_nodes.forEach((d, i) => {
-                if(i != 0) true_str += ' > '
-                true_str += d.option;
-            })
-            let cur_str = true_str;
-            if(wrong_num > 0) {
-                let tmp_str = ' ';
-                this.selected.forEach((d, i, a) => {
-                    if(i != 0) {
-                        if(a[i-1].equal[1] && a[i].equal[0]) {
-                            tmp_str += ' = '
-                        }
-                        else tmp_str += ' > '
-                    }
-                    tmp_str += d.option;
-                })
-                let i = 0, j = 0;
-                for(i = 0;i < tmp_str.length; i++){
-                    if(tmp_str[i] != cur_str[i]) {
-                        break;
-                    }
-                }
-                if(i !== tmp_str.length) {
-                    j = tmp_str.length - 1;
-                    for(;j > -1;j--) {
-                        if(tmp_str[j] != cur_str[j]) {
-                            break;
-                        }
-                    }
-                    cur_str = tmp_str.slice(0, i) + '<tspan fill="red">' + tmp_str.slice(i,j+1) +'</tspan>' + tmp_str.slice(j+1);
-                }
-            }
+            // const wrong_num = this.dialog_nodes.filter(d => !d.answer_right).length;
+            // let state_str = 'exact';
+            // if(wrong_num > 0) state_str = 'partly wrong';
+            // if(wrong_num == 4) state_str = 'wrong';
+            // let true_str = ' ';
+            // this.dialog_nodes.forEach((d, i) => {
+            //     if(i != 0) true_str += ' > '
+            //     true_str += d.option;
+            // })
+            // let cur_str = true_str;
+            // if(wrong_num > 0) {
+            //     let tmp_str = ' ';
+            //     this.selected.forEach((d, i, a) => {
+            //         if(i != 0) {
+            //             if(a[i-1].equal[1] && a[i].equal[0]) {
+            //                 tmp_str += ' = '
+            //             }
+            //             else tmp_str += ' > '
+            //         }
+            //         tmp_str += d.option;
+            //     })
+            //     let i = 0, j = 0;
+            //     for(i = 0;i < tmp_str.length; i++){
+            //         if(tmp_str[i] != cur_str[i]) {
+            //             break;
+            //         }
+            //     }
+            //     if(i !== tmp_str.length) {
+            //         j = tmp_str.length - 1;
+            //         for(;j > -1;j--) {
+            //             if(tmp_str[j] != cur_str[j]) {
+            //                 break;
+            //             }
+            //         }
+            //         cur_str = tmp_str.slice(0, i) + '<tspan fill="red">' + tmp_str.slice(i,j+1) +'</tspan>' + tmp_str.slice(j+1);
+            //     }
+            // }
 
-            const wrong_text = this.d_svg.selectAll('.answer-wrong-text')
-                .data(['']);
-            wrong_text.enter()
-                .append('text')
-                .attr('class', 'answer-wrong-text')
-                .html(`Your answer is ${state_str}: ${cur_str}.`)
-                .attr('x', 34)
-                .attr('y', 315)
-                .attr('font-size', 22);
+            // const wrong_text = this.d_svg.selectAll('.answer-wrong-text')
+            //     .data(['解析：']);
+            // wrong_text.enter()
+            //     .append('text')
+            //     .attr('class', 'answer-wrong-text')
+            //     .html(`Your answer is ${state_str}: ${cur_str}.`)
+            //     .attr('x', 34)
+            //     .attr('y', 315)
+            //     .attr('font-size', 22);
             
-            wrong_text.html(`Your answer is ${state_str}: ${cur_str}.`);
+            // wrong_text.html(`Your answer is ${state_str}: ${cur_str}.`);
 
             this.d_svg.selectAll('.explain-text')
-                .data(['Explanation:'])
+                .data(['解析:'])
                 .enter()
                 .append('text')
                 .attr('class', 'explain-text')
                 .text(d => d)
-                .attr('x', 34)
-                .attr('y', 365)
+                .attr('x', 50)
+                .attr('y', 325)
                 .attr('font-size', 22);
 
             const content = this.d_svg.selectAll('.explain-content')
@@ -960,7 +998,7 @@ export default {
                 .attr('x', d => d.x)
                 .attr('y', d => d.y)
                 .html(d => d.value)
-                .attr('font-size', 18);
+                .attr('font-size', 20);
             content.html(d => d.value);
             content.exit()
                 .attr('opacity', 0)
@@ -999,7 +1037,8 @@ export default {
                     .data([0]);
                 answer_button.enter()
                     .append('text')
-                    .text('Answer')
+                    .text('习题解答')
+                    .attr('font-family', 'Times, "Times New Roman", "楷体"')
                     .attr('class', 'answer-button')
                     .attr('text-decoration', 'underline')
                     .attr('fill', 'red')
@@ -1101,6 +1140,8 @@ export default {
             // console.log("get answer await")
         },
         closeDialog: function() {
+            // this.d_svg.selectAll('.answer-nodes').remove();
+            // this.d_svg.selectAll('.')
             if(!this.repeat_view) this.changeQuestion(this.nxt_index);
             // if(this.cur_pos < this.total_length[0])
             //     this.changeQuestion(this.nxt_index);
@@ -1180,10 +1221,10 @@ export default {
         },
         closeTutorial: function() {
             const that = this;
-            this.$confirm('<p style="font-size:18px;">Have you finished the tutorial? </p>\
-                <p style="font-size:18px;"><span style="color:red;">You can\'t return to the video after closing. </span></p>', 'Attention', {
-                confirmButtonText: 'Confirm',
-                cancelButtonText: 'Cancel',
+            this.$confirm('<p style="font-size:18px;">您确定要结束教程吗？ </p>\
+                <p style="font-size:18px;"><span style="color:red;">界面关闭后您将无法回到该视频。 </span></p>', '注意', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
                 dangerouslyUseHTMLString: true,
                 type: 'warning'
             }).then(() => {
@@ -1233,6 +1274,7 @@ export default {
                 .attr('x', d => d.x)
                 .attr('y', d => d.y)
                 .attr('font-size', 25)
+                .attr('font-family', 'Times, "Times New Roman", "楷体"')
                 // .attr('font-weight', 'bold')
                 .attr('text-anchor', 'middle')
                 .attr('opacity', 0)
@@ -1245,7 +1287,7 @@ export default {
                         id: index,
                         value: d,
                         x: 700,
-                        y: 560 + 35 * index
+                        y: 580 + 35 * index
                 }});
                 table_svg.selectAll('.tip-text')
                     .data(tip_data)
@@ -1259,6 +1301,7 @@ export default {
                     // .attr('font-weight', 'bold')
                     .attr('text-anchor', 'middle')
                     .attr('opacity', 0)
+                    .attr('font-family', 'Times, "Times New Roman", "楷体"')
                     .transition()
                     .duration(this.create_duration)
                     .attr('opacity', 1)
@@ -1302,7 +1345,8 @@ export default {
                     .attr('fill', 'red')
                 table_svg.select('g.break-button')
                     .append('text')
-                    .text(use_text < 2 ? 'Start': 'Continue')
+                    .text(use_text < 2 ? '开始': '继续')
+                    .attr('font-family', 'Times, "Times New Roman", "楷体"')
                     .attr('x', 0)
                     .attr('y', 7)
                     .attr('font-size', 22)
@@ -1347,9 +1391,10 @@ export default {
             return;
         }
         if(this.finish_all) {
-            this.breakTime(3);
-            this.enableButton();
-            return;
+            this.finish_all = false;
+            // this.breakTime(3);
+            // this.enableButton();
+            // return;
         }
         // this.getHackData();
         this.getData();
@@ -1371,6 +1416,18 @@ export default {
 }
 
 .form button span {
+    font-family: Times, "Times New Roman", "楷体";
+}
+
+.el-message-box__title {
+    font-family: Times, "Times New Roman", "楷体";
+}
+
+.el-message-box__content {
+    font-family: Times, "Times New Roman", "楷体";
+}
+
+.el-message__content {
     font-family: Times, "Times New Roman", "楷体";
 }
 
@@ -1398,7 +1455,7 @@ export default {
     text-anchor: start;
     text-align: left;
     font-size: 18px;
-    word-break: keep-all;
+    word-break: normal;
     word-wrap: break-word;
 }
 

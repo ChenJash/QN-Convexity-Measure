@@ -11,7 +11,7 @@ class DataLoader(object):
     def __init__(self) -> None:
         self.meta_data = {}
         self.data = []
-        self.test_path = "../datasets/pkg-simutest.pkl"
+        self.test_path = "../datasets/pkg-simutest-chi.pkl"
         self.data_path = "../datasets/pkg-ques-final.pkl"
         self.load_data()
         self.colors = MyColorMap()
