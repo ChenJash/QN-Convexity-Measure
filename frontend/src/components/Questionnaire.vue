@@ -487,7 +487,7 @@ export default {
             this.dialog_links = links;
 
             const xstart = 39;
-            const ystart = 405, deltay = 37;
+            const ystart = 365, deltay = 37;
             const rgb = function(rgblist) {
                 return `rgb(${rgblist[0]}, ${rgblist[1]}, ${rgblist[2]})`;
             }
@@ -832,19 +832,22 @@ export default {
                 .attr('class', 'answer-node')
                 .attr('transform', d => `translate(${d.x}, ${d.y})`);
             create.append('rect')
+                .attr('class', 'boundary')
                 .attr('x', 0)
                 .attr('y', 0)
                 .attr('width', d => d.width)
                 .attr('height', d => d.width)
-                .attr('stroke', d => d.color)
-                .attr('stroke-width', 15)
+                .attr('stroke', d => d.answer_right ? 'black': 'red')
+                .attr('stroke-width', d => d.answer_right ? 5 : 8)
                 .attr('fill', 'None');
             create.append('text')
+                .attr('class', 'option-name')
                 .text(d => d.option)
                 .attr('x', -5)
                 .attr('y', -13)
                 .attr('font-size', 20)
-                .attr('fill', d => d.color);
+                .attr('font-weight', d => d.answer_right ? 'normal' :'bold')
+                .attr('fill', d => d.answer_right ? 'black': 'red');
             create.append('text')
                 .attr('class', 'wrong-answer')
                 .attr('x', d => d.width + 14)
@@ -854,6 +857,16 @@ export default {
                 .attr('font-size', 18)
                 .attr('opacity', d => d.answer_right ? 0: 1)
                 .attr('text-anchor', 'end');
+            nodes.select('rect.boundary')
+                .transition()
+                .duration(this.update_duration / 2)
+                .attr('stroke', d => d.answer_right ? 'black': 'red')
+                .attr('stroke-width', d => d.answer_right ? 5 : 8);
+            nodes.select('text.option-name')
+                .transition()
+                .duration(this.update_duration / 2)
+                .attr('font-weight', d => d.answer_right ? 'normal' :'bold')
+                .attr('fill', d => d.answer_right ? 'black': 'red');
             nodes.select('text.wrong-answer')
                 .attr('opacity', d => d.answer_right ? 0: 1);
             nodes.exit()
@@ -865,11 +878,19 @@ export default {
             this.gridRender(grids_group, false);
             
             // render links
+            this.selected.forEach((d, i, a) => {
+                if(i != 0) {
+                    if(a[i-1].equal[1] && a[i].equal[0]) {
+                        this.dialog_links[i-1].answer_right = false;
+                    }
+                    else this.dialog_links[i-1].answer_right = true;
+                }
+            })
             const link_drawer = this.d_svg.select('g.answer-links');
             const links = link_drawer.selectAll('.answer-link')
                 .data(this.dialog_links, d => d.names);
             const link_create = links.enter().append('g')
-                .attr('class', 'link-group')
+                .attr('class', 'answer-link')
                 .attr('transform', d => `translate(${d.x}, ${d.y})`);
             link_create.append('circle')
                 .attr('cx', 0)
@@ -887,60 +908,65 @@ export default {
                 .attr('text-anchor', 'middle')
                 .attr('font-weight', 'bold')
                 .attr('fill', '#9A9A9A');
+            links.select('circle')
+                .transition()
+                .duration(this.update_duration / 2)
+                .attr('stroke', d => d.answer_right ? 'rgba(108,108,108, 0.57)' : 'red')
+                .attr('stroke-width', d => d.answer_right ? 1 : 2)
             links.exit()
                 .attr('opacity', 0)
                 .remove();
             
             // render texts
-            const wrong_num = this.dialog_nodes.filter(d => !d.answer_right).length;
-            let state_str = 'exact';
-            if(wrong_num > 0) state_str = 'partly wrong';
-            if(wrong_num == 4) state_str = 'wrong';
-            let true_str = ' ';
-            this.dialog_nodes.forEach((d, i) => {
-                if(i != 0) true_str += ' > '
-                true_str += d.option;
-            })
-            let cur_str = true_str;
-            if(wrong_num > 0) {
-                let tmp_str = ' ';
-                this.selected.forEach((d, i, a) => {
-                    if(i != 0) {
-                        if(a[i-1].equal[1] && a[i].equal[0]) {
-                            tmp_str += ' = '
-                        }
-                        else tmp_str += ' > '
-                    }
-                    tmp_str += d.option;
-                })
-                let i = 0, j = 0;
-                for(i = 0;i < tmp_str.length; i++){
-                    if(tmp_str[i] != cur_str[i]) {
-                        break;
-                    }
-                }
-                if(i !== tmp_str.length) {
-                    j = tmp_str.length - 1;
-                    for(;j > -1;j--) {
-                        if(tmp_str[j] != cur_str[j]) {
-                            break;
-                        }
-                    }
-                    cur_str = tmp_str.slice(0, i) + '<tspan fill="red">' + tmp_str.slice(i,j+1) +'</tspan>' + tmp_str.slice(j+1);
-                }
-            }
+            // const wrong_num = this.dialog_nodes.filter(d => !d.answer_right).length;
+            // let state_str = 'exact';
+            // if(wrong_num > 0) state_str = 'partly wrong';
+            // if(wrong_num == 4) state_str = 'wrong';
+            // let true_str = ' ';
+            // this.dialog_nodes.forEach((d, i) => {
+            //     if(i != 0) true_str += ' > '
+            //     true_str += d.option;
+            // })
+            // let cur_str = true_str;
+            // if(wrong_num > 0) {
+            //     let tmp_str = ' ';
+            //     this.selected.forEach((d, i, a) => {
+            //         if(i != 0) {
+            //             if(a[i-1].equal[1] && a[i].equal[0]) {
+            //                 tmp_str += ' = '
+            //             }
+            //             else tmp_str += ' > '
+            //         }
+            //         tmp_str += d.option;
+            //     })
+            //     let i = 0, j = 0;
+            //     for(i = 0;i < tmp_str.length; i++){
+            //         if(tmp_str[i] != cur_str[i]) {
+            //             break;
+            //         }
+            //     }
+            //     if(i !== tmp_str.length) {
+            //         j = tmp_str.length - 1;
+            //         for(;j > -1;j--) {
+            //             if(tmp_str[j] != cur_str[j]) {
+            //                 break;
+            //             }
+            //         }
+            //         cur_str = tmp_str.slice(0, i) + '<tspan fill="red">' + tmp_str.slice(i,j+1) +'</tspan>' + tmp_str.slice(j+1);
+            //     }
+            // }
 
-            const wrong_text = this.d_svg.selectAll('.answer-wrong-text')
-                .data(['']);
-            wrong_text.enter()
-                .append('text')
-                .attr('class', 'answer-wrong-text')
-                .html(`Your answer is ${state_str}: ${cur_str}.`)
-                .attr('x', 34)
-                .attr('y', 315)
-                .attr('font-size', 22);
+            // const wrong_text = this.d_svg.selectAll('.answer-wrong-text')
+            //     .data(['']);
+            // wrong_text.enter()
+            //     .append('text')
+            //     .attr('class', 'answer-wrong-text')
+            //     .html(`Your answer is ${state_str}: ${cur_str}.`)
+            //     .attr('x', 34)
+            //     .attr('y', 315)
+            //     .attr('font-size', 22);
             
-            wrong_text.html(`Your answer is ${state_str}: ${cur_str}.`);
+            // wrong_text.html(`Your answer is ${state_str}: ${cur_str}.`);
 
             this.d_svg.selectAll('.explain-text')
                 .data(['Explanation:'])
@@ -949,7 +975,7 @@ export default {
                 .attr('class', 'explain-text')
                 .text(d => d)
                 .attr('x', 34)
-                .attr('y', 365)
+                .attr('y', 325)
                 .attr('font-size', 22);
 
             const content = this.d_svg.selectAll('.explain-content')
