@@ -61,7 +61,7 @@ class DataSaver(object):
         db.commit()
 
     def get_null_latin_seq(self, db: sqlite3.Connection, session_id) -> list:
-        if session_id < 1:
+        if session_id < 36:
             return self.get_seq(session_id)
         cur = db.cursor()
         cur.execute(self.select_all_users)

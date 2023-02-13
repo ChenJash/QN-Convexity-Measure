@@ -2,14 +2,15 @@
   <div class="question-naire">
     <el-dialog title="Tutorial" :visible.sync="tutorial" width="1300px" class="form" :before-close="closeTutorial">
         <video width="1250" height="630" controls>
-            <source src="../assets/mp4/grid_tutorial.mp4" />
+            <source src="../assets/mp4/grid_tutorial_v2.mp4" />
         </video>
     </el-dialog>
     <el-dialog title="Consent Form" :visible.sync="consent_form" width="1300px" :show-close="false" 
             :close-on-press-escape="false" :close-on-click-modal="false" class="form" id="consent">
-        <el-link type="primary" id="sheet-link" @click="info_sheet=true">Participant Information Sheet</el-link>
+        
         <el-form label-position="left" label-width="1000px" :model="consent_result">
-        <el-form-item class="item" label="1.	I confirm that I have read and have understood the information sheet dated February 9，2023 for the above study. I have had the opportunity to consider the information, ask questions and have had these answered satisfactorily.">
+        <el-form-item class="item">
+            <template slot="label">1.	I confirm that I have read and have understood the <span id="sheet-link" @click="info_sheet=true">information sheet</span> dated February 9, 2023 for the above study. I have had the opportunity to consider the information, ask questions and have had these answered satisfactorily.</template>
             <el-checkbox v-model="consent_result.agree1">Agree</el-checkbox>
         </el-form-item>
         <el-form-item class="item" label="2.	I understand that my participation is voluntary and that I am free to withdraw at any time without giving any reason, without my rights being affected.">
@@ -147,6 +148,7 @@ export default {
             dialog_texts: [],
             d_grid_width: 200,
             answer_data: [],
+            tp_colors: [[29,178,231], [228,86,86], [79,217,92], [226,190,100]],
             // break time
             in_break: false,
             break_text: [[
@@ -154,23 +156,27 @@ export default {
                 "Once you have answered the questions, the correct answers and explanations will be displayed.",
                 "To begin the <tspan fill='red'>practice session</tspan>, press the '<tspan fill='red'>Start</tspan>' button."
             ],[
-                "Next, you will enter the <tspan fill='red'>formal user study</tspan>.",
+                "Next, you will enter the <tspan fill='red'>formal user study</tspan>. In total, there are 36 questions",
+                "that are divided into 4 groups. After each group, you may take a brief break.  ",
+                "However, please ensure you <tspan fill='red'>complete all questions within the group without interruption</tspan>.",
                 "In the formal user study, the questions will be more difficult than the simulation test.",
                 "Each question may not have a standard answer, and each option has relatively good convexity.",
                 "Rank options by <tspan fill='green'>your understanding of convexity.</tspan> Please take each question seriously!",
+                
                 "To begin the formal user study, press the '<tspan fill='red'>Start</tspan>' button."
             ], [
-                "You have finished a set of 9 questions.",
+                "You have just finished a group of 9 questions.",
                 "You can <tspan fill='green'>take a short break to relax your eyes.</tspan>",
                 " ",
-                "After the rest, please <tspan fill='red'>finish the next set of questions without break</tspan>.",
-                "To begin the formal user study, press the '<tspan fill='red'>Continue</tspan>' button."
+                "After the rest, please <tspan fill='red'>finish the next 9 questions without interruption</tspan>.",
+                "To continue, press the '<tspan fill='red'>Continue</tspan>' button."
             ], [
                 "You have <tspan fill='red'>completed all the questions</tspan>, thank you for your participation!",
                 "After the statistics are completed, we will pay the thank-you money one after another.",
                 "If you have any questions, please contact: <tspan fill='blue' text-decoration='underline'> <a xlink:href='mailto:jiashu0717c@gmail.com'>jiashu0717c@gmail.com</a></tspan>."
             ]],
             tip_text: [
+                // " ",
                 "Tip: When the number of categories in a grid layout is large, it may be useful for you",
                 "to <tspan fill='green'>check the convexity of more different categories</tspan>."
             ]
@@ -231,10 +237,10 @@ export default {
                     .text("Next");
             }
         },
-        answer_data: function() {
-            this.dialogLayout();
-            this.dialogRender();
-        }
+        // answer_data: function() {
+        //     this.dialogLayout();
+        //     this.dialogRender();
+        // }
     },
     methods: {
         // authentication
@@ -461,9 +467,11 @@ export default {
                 grid.name = raw_grid.name;
                 node.grid = grid;
                 node.color = this.selected.filter(e => e.option == node.option)[0].color;
+                node.answer_right = this.selected.length < 4 || node.option == this.selected[i].option;
                 nodes.push(node);
             }
             this.dialog_nodes = nodes;
+            console.log("ERRR", nodes, this.selected)
 
             const links = [];
             for(let i = 0; i < 3; i++){
@@ -479,29 +487,29 @@ export default {
             this.dialog_links = links;
 
             const xstart = 39;
-            const ystart = 360, deltay = 37;
+            const ystart = 405, deltay = 37;
             const rgb = function(rgblist) {
-                return `rgb(${rgblist[0] * 255}, ${rgblist[1] * 255}, ${rgblist[2] * 255})`;
+                return `rgb(${rgblist[0]}, ${rgblist[1]}, ${rgblist[2]})`;
             }
             const texts = this.answer_data[1].map((value, index) => {
                 value = value.replace(/\[1\]/g, `${nodes[0].option}`);
                 value = value.replace(/\[2\]/g, `${nodes[1].option}`);
                 value = value.replace(/\[3\]/g, `${nodes[2].option}`);
                 value = value.replace(/\[4\]/g, `${nodes[3].option}`);
-                value = value.replace(/Category 1/g, `<tspan fill="${rgb(this.data.colors[0])}" >Category 1</tspan>`);
-                value = value.replace(/Categories 1/g, `<tspan fill="${rgb(this.data.colors[0])}" >Categories 1</tspan>`);
-                value = value.replace(/red/g, `<tspan fill="${rgb(this.data.colors[0])}" >red</tspan>`);
-                value = value.replace(/Category 2/g, `<tspan fill="${rgb(this.data.colors[1])}" >Category 2</tspan>`);
-                value = value.replace(/2, and/g, `<tspan fill="${rgb(this.data.colors[1])}" >2</tspan>, and`);
-                value = value.replace(/blue/g, `<tspan fill="${rgb(this.data.colors[1])}" >blue</tspan>`);
+                value = value.replace(/Category 1/g, `<tspan fill="${rgb(this.tp_colors[0])}">Category 1</tspan>`);
+                value = value.replace(/Categories 1/g, `<tspan fill="${rgb(this.tp_colors[0])}" >Categories 1</tspan>`);
+                value = value.replace(/blue/g, `<tspan fill="${rgb(this.tp_colors[0])}" >blue</tspan>`);
+                value = value.replace(/Category 2/g, `<tspan fill="${rgb(this.tp_colors[1])}" >Category 2</tspan>`);
+                value = value.replace(/2, and/g, `<tspan fill="${rgb(this.tp_colors[1])}" >2</tspan>, and`);
+                value = value.replace(/red/g, `<tspan fill="${rgb(this.tp_colors[1])}" >red</tspan>`);
                 if(this.data.colors[2] !== undefined) {
-                    value = value.replace(/Category 3/g, `<tspan fill="${rgb(this.data.colors[2])}" >Category 3</tspan>`);
-                    value = value.replace(/and 3/g, `and <tspan fill="${rgb(this.data.colors[2])}" >3</tspan>, and`);
-                    value = value.replace(/green/g, `<tspan fill="${rgb(this.data.colors[2])}" >green</tspan>`);
+                    value = value.replace(/Category 3/g, `<tspan fill="${rgb(this.tp_colors[2])}" >Category 3</tspan>`);
+                    value = value.replace(/and 3/g, `and <tspan fill="${rgb(this.tp_colors[2])}" >3</tspan>, and`);
+                    value = value.replace(/green/g, `<tspan fill="${rgb(this.tp_colors[2])}" >green</tspan>`);
                 }
                 if(this.data.colors[3] !== undefined) {
-                    value = value.replace(/Category 4/g, `<tspan fill="${rgb(this.data.colors[3])}" >Category 4</tspan>`);
-                    value = value.replace(/purple/g, `<tspan fill="${rgb(this.data.colors[3])}" >purple</tspan>`);
+                    value = value.replace(/Category 4/g, `<tspan fill="${rgb(this.tp_colors[3])}" >Category 4</tspan>`);
+                    value = value.replace(/yellow/g, `<tspan fill="${rgb(this.tp_colors[3])}" >yellow</tspan>`);
                 }
                 return {
                     value: value,
@@ -609,8 +617,8 @@ export default {
                 .attr('width', d => d.width)
                 .attr('height', d => d.width)
                 .attr('fill', d => `rgb(${d.color[0] * 255},${d.color[1] * 255},${d.color[2] * 255})`)
-                .attr('stroke', 'black')
-                .attr('stroke-width', 1)
+                .attr('stroke', 'gray')
+                .attr('stroke-width', 0.2)
                 .attr('opacity', 0)
                 .transition()
                 .duration(animation ? this.create_duration / 4: 0)
@@ -837,6 +845,17 @@ export default {
                 .attr('y', -13)
                 .attr('font-size', 20)
                 .attr('fill', d => d.color);
+            create.append('text')
+                .attr('class', 'wrong-answer')
+                .attr('x', d => d.width + 14)
+                .attr('y', d => d.width + 25)
+                .text('▲ Your answer is wrong.')
+                .attr('fill', 'red')
+                .attr('font-size', 18)
+                .attr('opacity', d => d.answer_right ? 0: 1)
+                .attr('text-anchor', 'end');
+            nodes.select('text.wrong-answer')
+                .attr('opacity', d => d.answer_right ? 0: 1);
             nodes.exit()
                 .attr('opacity', 0)
                 .remove();
@@ -873,6 +892,56 @@ export default {
                 .remove();
             
             // render texts
+            const wrong_num = this.dialog_nodes.filter(d => !d.answer_right).length;
+            let state_str = 'exact';
+            if(wrong_num > 0) state_str = 'partly wrong';
+            if(wrong_num == 4) state_str = 'wrong';
+            let true_str = ' ';
+            this.dialog_nodes.forEach((d, i) => {
+                if(i != 0) true_str += ' > '
+                true_str += d.option;
+            })
+            let cur_str = true_str;
+            if(wrong_num > 0) {
+                let tmp_str = ' ';
+                this.selected.forEach((d, i, a) => {
+                    if(i != 0) {
+                        if(a[i-1].equal[1] && a[i].equal[0]) {
+                            tmp_str += ' = '
+                        }
+                        else tmp_str += ' > '
+                    }
+                    tmp_str += d.option;
+                })
+                let i = 0, j = 0;
+                for(i = 0;i < tmp_str.length; i++){
+                    if(tmp_str[i] != cur_str[i]) {
+                        break;
+                    }
+                }
+                if(i !== tmp_str.length) {
+                    j = tmp_str.length - 1;
+                    for(;j > -1;j--) {
+                        if(tmp_str[j] != cur_str[j]) {
+                            break;
+                        }
+                    }
+                    cur_str = tmp_str.slice(0, i) + '<tspan fill="red">' + tmp_str.slice(i,j+1) +'</tspan>' + tmp_str.slice(j+1);
+                }
+            }
+
+            const wrong_text = this.d_svg.selectAll('.answer-wrong-text')
+                .data(['']);
+            wrong_text.enter()
+                .append('text')
+                .attr('class', 'answer-wrong-text')
+                .html(`Your answer is ${state_str}: ${cur_str}.`)
+                .attr('x', 34)
+                .attr('y', 315)
+                .attr('font-size', 22);
+            
+            wrong_text.html(`Your answer is ${state_str}: ${cur_str}.`);
+
             this.d_svg.selectAll('.explain-text')
                 .data(['Explanation:'])
                 .enter()
@@ -880,7 +949,7 @@ export default {
                 .attr('class', 'explain-text')
                 .text(d => d)
                 .attr('x', 34)
-                .attr('y', 320)
+                .attr('y', 365)
                 .attr('font-size', 22);
 
             const content = this.d_svg.selectAll('.explain-content')
@@ -891,7 +960,7 @@ export default {
                 .attr('x', d => d.x)
                 .attr('y', d => d.y)
                 .html(d => d.value)
-                .attr('font-size', 16);
+                .attr('font-size', 18);
             content.html(d => d.value);
             content.exit()
                 .attr('opacity', 0)
@@ -1005,7 +1074,8 @@ export default {
                         return;
                     }
                     if(!this.in_break && (this.cur_pos - this.total_length[0]) % 9 == 0
-                        && this.cur_pos != this.total_length[0] + this.total_length[1]) {
+                        && this.cur_pos != this.total_length[0] + this.total_length[1]
+                        && this.cur_pos > this.total_length[0]) {
                         this.breakTime(2);
                         return;
                     }
@@ -1024,6 +1094,8 @@ export default {
                 else{
                     // console.log('Get Answer', response.data);
                     that.answer_data = response.data.answer;
+                    that.dialogLayout();
+                    that.dialogRender();
                 }
             });
             // console.log("get answer await")
@@ -1136,10 +1208,10 @@ export default {
             let used_text = [];
             used_text = this.break_text[use_text];
             // console.log(use_text, this.break_text[use_text])
-            let start_y = use_text == 0 ? 350: 260;
+            let start_y = use_text == 0 ? 350: 220;
             if(use_text == 2) start_y = 310;
             if(use_text == 3) start_y = 400;
-            let button_y = use_text != 1? 620: 680;
+            let button_y = use_text != 1? 620: 700;
             if(use_text == 0) button_y = 580;
             const str_data = used_text.map((d, index) => {
                 return {
@@ -1173,7 +1245,7 @@ export default {
                         id: index,
                         value: d,
                         x: 700,
-                        y: 500 + 35 * index
+                        y: 560 + 35 * index
                 }});
                 table_svg.selectAll('.tip-text')
                     .data(tip_data)
@@ -1312,11 +1384,14 @@ export default {
 
 .item label {
     font-size: 20px;
+    word-break: keep-all;
+    word-wrap: break-word;
 }
 
 #sheet-link {
-    padding-top: 2px;
-    padding-bottom: 10px;
+    color: rgb(64,158,255);
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 #sheet p {
@@ -1332,7 +1407,7 @@ export default {
 }
 
 #consent .el-dialog__body {
-    padding-top: 10px;
+    padding-top: 15px;
 }
 
 </style>

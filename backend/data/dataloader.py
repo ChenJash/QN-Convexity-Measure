@@ -3,6 +3,7 @@ import pickle
 import os, random
 from IPython import embed
 from .datasaver import datasaver
+from .colors import MyColorMap
 import matplotlib.pyplot as plt
 # use saver to save/search user info
 
@@ -13,18 +14,13 @@ class DataLoader(object):
         self.test_path = "../datasets/pkg-simutest.pkl"
         self.data_path = "../datasets/pkg-ques-final.pkl"
         self.load_data()
-        self.colors = [plt.get_cmap('Set1').colors, plt.get_cmap('tab10').colors, plt.get_cmap('Paired').colors, plt.get_cmap('tab20').colors]
+        self.colors = MyColorMap()
         datasaver.set_question_num(self.meta_data["count"])
         self.trans = ["A", "B", "C", "D"]
     
     def get_colors(self, max_label) -> list:
-        if max_label < 8:
-            return self.colors[0]
-        if max_label < 10:
-            return self.colors[1]
-        if max_label < 12:
-            return self.colors[2]
-        return self.colors[3]
+        assert(max_label < 10)
+        return self.colors.colorSet(max_label + 1)
 
     def load_data(self) -> None:
         self.data = []
