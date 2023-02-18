@@ -11,7 +11,7 @@ class DataLoader(object):
     def __init__(self) -> None:
         self.meta_data = {}
         self.data = []
-        self.test_path = "../datasets/pkg-simutest-chi.pkl"
+        self.test_path = "../datasets/results-chi/pkg-simutest-chi.pkl"
         self.data_path = "../datasets/pkg-ques-final.pkl"
         self.load_data()
         self.colors = MyColorMap()
@@ -71,6 +71,7 @@ class DataLoader(object):
         load_seq = datasaver.load_data(db, raw, user_id)
         data = {}
         data["grids"] = []
+        data["question_name"] = raw["name"]
         for i in load_seq:
             # data["grids"].append(raw["grids"][i+part])
             data["grids"].append(raw["grids"][i])

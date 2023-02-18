@@ -4,7 +4,7 @@ module.exports = defineConfig({
   devServer: {
     proxy: {
       '/api': {
-        target: "http://localhost:5000/",
+        target: "http://localhost:8000/",
         changeOrigin: true,
         // ws: false,
         pathRewrite:{
@@ -13,9 +13,9 @@ module.exports = defineConfig({
       }
     },
     host: '0.0.0.0',
-    port: 8080,
+    port: 11111,
     client: {
-      webSocketURL: 'ws://0.0.0.0:8080/ws',
+      webSocketURL: 'ws://0.0.0.0:11111/ws',
     },
     headers: {
       'Access-Control-Allow-Origin': '*',

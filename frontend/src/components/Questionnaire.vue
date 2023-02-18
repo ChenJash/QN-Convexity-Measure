@@ -1,8 +1,8 @@
 <template>
   <div class="question-naire">
     <el-dialog title="教程" :visible.sync="tutorial" width="1300px" class="form" :before-close="closeTutorial">
-        <video width="1250" height="630" controls>
-            <source src="../assets/mp4/grid_tutorial_v2.mp4" />
+        <video width="1250" height="630" controls id="tutorial">
+            <source src="../assets/mp4/tutorial.mp4" />
         </video>
     </el-dialog>
     <el-dialog title="知情同意书" :visible.sync="consent_form" width="1100px" :show-close="false" 
@@ -110,7 +110,8 @@ export default {
             ],
             selected: [],
             cur_select: 0,
-            select_colors: ['#DE0707', '#0F40F5', '#A16222', '#81B337'], 
+            // select_colors: ['#DE0707', '#0F40F5', '#A16222', '#81B337'], 
+            select_colors: ['#AAA7BC', '#AAA7BC', '#AAA7BC', '#AAA7BC'],
             select_state: [false, false, false, false],
             buttons: [{
                 id: 0,
@@ -153,15 +154,17 @@ export default {
             in_break: false,
             break_text: [[
                 "现在，有6道模拟测试题供您练习。练习题中没有任何时间要求。",
+                "请您使用电脑或平板作答，显示屏过小可能会影响查看与作答。",
                 "每道练习题被作答后，我们会为您展示题目的正确答案和对应的解释。",
                 "如果您已准备就绪，请点击 <tspan fill='red'>“开始”</tspan> 按钮, 进入<tspan fill='red'>模拟测试</tspan>。"
             ],[
                 "接下来，您将进入<tspan fill='red'>正式作答环节</tspan>。总共包含36道题目，平均分为4组。",
                 "在完成每一组的作答后，您都可以稍做休息，再继续进行下一组的作答。",
                 "但是，请确保您在每一组的作答中<tspan fill='red'>不间断地完成组内的所有问题</tspan>。",
+                "",
                 "正式作答中，您遇到的题目会比模拟测试的题目更加困难。",
                 "每一个问题可能没有标准答案，每一个选项都具有相对不差的凸性。",
-                "按照自己 <tspan fill='green'>对于凸性的理解</tspan> 进行排序即可， 请您务必认真对待每一道题!", 
+                "按照自己<tspan fill='green'>对于凸性的理解</tspan>进行排序即可， 请您务必认真对待每一道题!", 
                 "如果您已准备就绪，请点击 <tspan fill='red'>“开始”</tspan> 按钮, 进入<tspan fill='red'>正式作答</tspan>。"
             ], [
                 "您刚刚完成了一组 9 道题目。",
@@ -315,7 +318,7 @@ export default {
                     console.log('Change error:', response.data.detail);
                     if(response.data.detail == 'This is the final question.') {
                         that.$message({
-                            message: 'Finish all questions successfully!',
+                            message: '你已完成全部作答！',
                             type: 'success'
                         });
                         that.$alert('<p style="font-size:18px;">您已完成全部问题的作答，衷心感谢您的参与</p> <br /> \
@@ -325,7 +328,7 @@ export default {
                             dangerouslyUseHTMLString: true,
                             callback: (action) => {
                                 if(action === 'confirm') {
-                                    window.open('https://www.wjx.cn/vm/Q03dUrB.aspx#' ,'_blank');
+                                    window.open('https://www.wjx.cn/vm/maNPK0B.aspx#' ,'_blank');
                                     that.breakTime(3);
                                     that.finish_all = true;
                                 }
@@ -441,6 +444,7 @@ export default {
             const width_size = Math.floor(Math.sqrt(this.grids[0].cells.length));
             for(let i = 0; i < 4; i++){
                 const node = {};
+                node.index = i;
                 node.id = this.answer_data[0][i];
                 node.option = this.trans2[node.id];
                 node.name = `answer-${this.data.index}-${node.option}`
@@ -471,7 +475,6 @@ export default {
                 nodes.push(node);
             }
             this.dialog_nodes = nodes;
-            console.log("ERRR", nodes, this.selected)
 
             const links = [];
             for(let i = 0; i < 3; i++){
@@ -765,7 +768,7 @@ export default {
                 .attr('stroke', d => d.color)
                 .attr('rx', 20)
                 .attr('ry', 20)
-                .attr('stroke-width', 4)
+                .attr('stroke-width', 2.5)
                 .attr('width', 134)
                 .attr('height', 46)
                 .attr('fill', 'white');
@@ -844,12 +847,12 @@ export default {
                 .attr('transform', d => `translate(${d.x}, ${d.y})`);
             create.append('rect')
                 .attr('class', 'boundary')
-                .attr('x', 0)
-                .attr('y', 0)
-                .attr('width', d => d.width)
-                .attr('height', d => d.width)
-                .attr('stroke', d => d.answer_right ? 'black': 'red')
-                .attr('stroke-width', d => d.answer_right ? 5 : 8)
+                .attr('x', -4)
+                .attr('y', -4)
+                .attr('width', d => d.width+8)
+                .attr('height', d => d.width+8)
+                .attr('stroke', d => d.answer_right ? 'green': 'red')
+                .attr('stroke-width', d => d.answer_right ? 2: 2)
                 .attr('fill', 'None');
             create.append('text')
                 .attr('class', 'option-name')
@@ -858,7 +861,7 @@ export default {
                 .attr('y', -13)
                 .attr('font-size', 20)
                 .attr('font-weight', d => d.answer_right ? 'normal' :'bold')
-                .attr('fill', d => d.answer_right ? 'black': 'red');
+                .attr('fill', d => d.answer_right ? 'green': 'red');
             create.append('text')
                 .attr('class', 'wrong-answer')
                 .attr('x', d => d.width + 14)
@@ -872,13 +875,13 @@ export default {
             nodes.select('rect.boundary')
                 .transition()
                 .duration(this.update_duration / 2)
-                .attr('stroke', d => d.answer_right ? 'black': 'red')
-                .attr('stroke-width', d => d.answer_right ? 5 : 8);
+                .attr('stroke', d => d.answer_right ? 'green': 'red')
+                .attr('stroke-width', d => d.answer_right ? 2 : 2);
             nodes.select('text.option-name')
                 .transition()
                 .duration(this.update_duration / 2)
                 .attr('font-weight', d => d.answer_right ? 'normal' :'bold')
-                .attr('fill', d => d.answer_right ? 'black': 'red');
+                .attr('fill', d => d.answer_right ? 'green': 'red');
             nodes.select('text.wrong-answer')
                 .attr('opacity', d => d.answer_right ? 0: 1);
             nodes.exit()
@@ -948,7 +951,7 @@ export default {
             //                 tmp_str += ' = '
             //             }
             //             else tmp_str += ' > '
-            //         }
+            //         }length
             //         tmp_str += d.option;
             //     })
             //     let i = 0, j = 0;
@@ -1003,6 +1006,208 @@ export default {
             content.exit()
                 .attr('opacity', 0)
                 .remove();
+            
+            // render marks
+            const mark_id = parseInt(this.data.question_name.split("-")[1]);
+            this.marksRender(mark_id);
+        },
+        marksRender: function(mark_id){
+            const nodes = this.d_svg.select('g.answer-nodes').selectAll('.answer-node');
+            const ewidth = this.d_grid_width / 20;
+            const pos = function(i, j) {
+                return `${j*ewidth},${i*ewidth}`;
+            };
+            const getLine = function(nodes) {
+                console.assert(nodes.length > 1);
+                let str = 'M ';
+                str += pos(nodes[0][0], nodes[0][1]);
+                for(let i = 1; i < nodes.length; i++) {
+                    str += 'L ';
+                    str += pos(nodes[i][0], nodes[i][1]);
+                }
+                return str;
+            }
+            const drawLine = function(grid, nodes) {
+                grid.append('path')
+                    .attr('d', getLine(nodes))
+                    .attr('stroke', 'red')
+                    .attr('stroke-width', 1)
+                    .attr('fill', 'none');
+            }
+            const _getLine = function(nodes) {
+                console.assert(nodes.length > 1);
+                let str = 'M ';
+                str += pos(nodes[0][1], nodes[0][0]);
+                for(let i = 1; i < nodes.length; i++) {
+                    str += 'L ';
+                    str += pos(nodes[i][1], nodes[i][0]);
+                }
+                return str;
+            }
+            const _drawLine = function(grid, nodes) {
+                grid.append('path')
+                    .attr('d', _getLine(nodes))
+                    .attr('stroke', 'red')
+                    .attr('stroke-width', 1)
+                    .attr('fill', 'none');
+            }
+            if(mark_id == 0) {
+                const grid1 = nodes.filter(d => d.index == 0);
+                drawLine(grid1, [[4,4], [5,4], [5,5]]);
+                drawLine(grid1, [[6,7], [7,7], [7,8]]);
+                drawLine(grid1, [[7,9], [8,9], [8,10]]);
+                drawLine(grid1, [[13,10], [13,11], [12,11]]);
+                const grid2 = nodes.filter(d => d.index == 1);
+                drawLine(grid2, [[3,2], [4,2], [4,3]]);
+                drawLine(grid2, [[4,4], [5,4], [5,5]]);
+                drawLine(grid2, [[5,6], [6,6], [6,7]]);
+                drawLine(grid2, [[6,9], [6,10], [7,10], [7,11], [8,11]]);
+                drawLine(grid2, [[10,11], [11,11], [11,12]]);
+                drawLine(grid2, [[10,14], [9,14], [9,16], [10,16], [10, 17]]);
+                const grid3 = nodes.filter(d => d.index == 2);
+                drawLine(grid3, [[3,2], [4,2], [4,3]]);
+                drawLine(grid3, [[4,4], [5,4], [5,5]]);
+                drawLine(grid3, [[5,6], [6,6], [6,7]]);
+                // drawLine(grid3, [[6,8], [6,9], [5,9], [5,10]]);
+                // drawLine(grid3, [[5,11], [5,12], [7,12], [7,11]]);
+                drawLine(grid3, [[9,11], [9,10], [10,10]]);
+                drawLine(grid3, [[13,10], [14,10], [14,9]]);
+                drawLine(grid3, [[12,11], [12,12], [11,12]]);
+                // drawLine(grid3, [[10,14], [9,14], [9,15]]);
+                // drawLine(grid3, [[9,16], [9,17],[10,17], [10, 19], [11,19]]);
+                drawLine(grid3, [[4, 8],[8,8], [8, 13], [4,13], [4,8]]);
+                drawLine(grid3, [[8.5, 12],[8.5,19], [13, 19], [13,12], [8.5,12]]);
+                const grid4 = nodes.filter(d => d.index == 3);
+                drawLine(grid4, [[3,2], [4,2], [4,3]]);
+                drawLine(grid4, [[4,4], [5,4], [5,5]]);
+                drawLine(grid4, [[5,6], [6,6], [6,7]]);
+                // drawLine(grid4, [[6,7], [6,8], [4,8], [4,9], [3,9], [3,10], [4,10], [4,13], [6,13], [6,12]]);
+                drawLine(grid4, [[12,8], [12,7], [11,7], [11,8]]);
+                drawLine(grid4, [[13,9], [13,10], [14,10], [14,9]]);
+                drawLine(grid4, [[12,11], [12,12], [11,12]]);
+                // drawLine(grid4, [[9,16], [10,16],[10,18], [9, 18], [9,19], [11, 19]]);
+                drawLine(grid4, [[2, 7],[7,7], [7, 14], [2,14], [2,7]]);
+                drawLine(grid4, [[7.5, 12],[7.5,19.5], [13, 19.5], [13,12], [7.5,12]]);
+            }
+            if(mark_id == 1) {
+                const grid1 = nodes.filter(d => d.index == 0);
+                _drawLine(grid1, [[11,9], [11,10], [12,10]]);
+                _drawLine(grid1, [[14,13], [14,15], [16,15]]);
+                _drawLine(grid1, [[16,16], [16,18], [18,18]]);
+                const grid2 = nodes.filter(d => d.index == 1);
+                _drawLine(grid2, [[2,8], [2,9], [4,9], [4,8], [8,8], [8,10],[9,10]]);
+                _drawLine(grid2, [[12,10], [14,10], [14,9], [13,9]]);
+                _drawLine(grid2, [[18,1],[18,2], [17,2]]);
+                _drawLine(grid2, [[14,13],[14,14], [15,14]]);
+                _drawLine(grid2, [[16,2],[15,2], [15,3], [14,3]]);
+                _drawLine(grid2, [[16,16], [16,18], [18,18]]);
+                const grid3 = nodes.filter(d => d.index == 2);
+                _drawLine(grid3, [[1,7], [1,8], [2,8], [2,10], [4,10], [4,8], [5,8], [5,6], [7,6],[7,7],[8,7],[8,10]]);
+                _drawLine(grid3, [[12,10], [14,10], [14,9], [13,9], [13,8]]);
+                _drawLine(grid3, [[17,1], [17,3], [16,3], [16,4], [15,4], [15,2], [14,2], [14,3],[13,3],[13,4]]);
+                _drawLine(grid3, [[16,16], [16,18], [18,18]]);
+                _drawLine(grid3, [[13,12], [13,13], [14,13]]);
+                const grid4 = nodes.filter(d => d.index == 3);
+                _drawLine(grid4, [[1,6], [1,8], [2,8], [2,11], [5,11], [5,10], [4,10], [4,8], [5,8], [5,7],[6,7],[6,4],[7,4],[7,8],[8,8],[8,12],[9,12],[9,13],[10,13],[10,11]]);
+                _drawLine(grid4, [[17,1], [17,3], [16,3], [16,4], [15,4], [15,2], [13,2], [13,3],[12,3],[12,4],[11,4],[11,5],[14,5],[14,6],[13,6]]);
+                _drawLine(grid4, [[12,9], [14,9], [14,10],[12,10]]);
+                _drawLine(grid4, [[14,13], [15,13], [15,12], [16,12],[16,13],[18,13],[18,14],[17,14],[17,15],[16,15],[16,16],[15,16],[15,17],[16,17],[16,18],[18,18]]);
+            }
+            if(mark_id == 2) {
+                const grid1 = nodes.filter(d => d.index == 0);
+                drawLine(grid1, [[2,1], [2,2], [3,2]]);
+                drawLine(grid1, [[5,5], [6,5], [6,6]]);
+                drawLine(grid1, [[16,18], [17,18], [17,19]]);
+                const grid2 = nodes.filter(d => d.index == 1);
+                drawLine(grid2, [[3,2], [3,3], [4,3]]);
+                drawLine(grid2, [[5,5], [6,5], [6,6]]);
+                drawLine(grid2, [[6,8], [7,8], [7,9]]);
+                drawLine(grid2, [[7,12], [7,13], [8,13], [8,12]]);
+                drawLine(grid2, [[14,15], [15,15], [15,16]]);
+                drawLine(grid2, [[16,17], [17,17], [17,18]]);
+                const grid3 = nodes.filter(d => d.index == 2);
+                drawLine(grid3, [[3,2], [3,3], [4,3]]);
+                drawLine(grid3, [[5,6], [6,6], [6,8],[5,8],[5,10],[6,10], [6,11],[8,11],[8,9],[9,9],[9,11],[10,11],[10,13]]);
+                drawLine(grid3, [[14, 14],[15,14], [15,15], [16,15],[16,16],[17,16],[17,18], [16,18], [16,19], [15,19]]);
+                const grid4 = nodes.filter(d => d.index == 3);
+                drawLine(grid4, [[3,2], [3,4], [4,4], [4,3]]);
+                drawLine(grid4, [[6,6] , [6,8],[5,8],[5,9],[4,9],[4,10],[5,10],[5,11],[6,11],[6,13],[7,13],[7,10],[8,10],[8,7],[9,7],[9,11],[10,11],[10,14]]);
+                drawLine(grid4, [[14, 14],[15,14], [15,16], [18,16],[18,17],[17,17],[17,18], [16,18], [16,19], [15,19]]);
+            }
+            if(mark_id == 3) {
+                const grid2 = nodes.filter(d => d.index == 1);
+                drawLine(grid2, [[10,4], [10,5], [9,5]]);
+                drawLine(grid2, [[9,8], [9,9], [10,9]]);
+                drawLine(grid2, [[11,9], [12,9], [12,10]]);
+                drawLine(grid2, [[12,13], [12,14], [11,14]]);
+                drawLine(grid2, [[9,14], [8,14], [8,15]]);
+                drawLine(grid2, [[8,16], [8,17], [10,17], [10,18]]);
+                const grid3 = nodes.filter(d => d.index == 2);
+                drawLine(grid3, [[6,0],[10, 2], [12, 4], [6,6], [15, 12], [6,16],[12,20]]);
+                // drawLine(grid3, [[10, 2],[10, 16], [16, 16], [16, 2],[10, 2]]);
+                const grid4 = nodes.filter(d => d.index == 3);
+                drawLine(grid4, [[6,0],[10, 2], [12, 4], [6,6], [18, 12], [3,16],[14,20]]);
+            }
+            if(mark_id == 4) {
+                const grid1 = nodes.filter(d => d.index == 0);
+                _drawLine(grid1, [[5,8], [7,8], [7,10]]);
+                _drawLine(grid1, [[7,15], [7,16], [6,16]]);
+                _drawLine(grid1, [[12,12], [12,14], [10,14]]);
+                const grid2 = nodes.filter(d => d.index == 1);
+                _drawLine(grid2, [[9,1], [9,2], [11,2], [11,3]]);
+                _drawLine(grid2, [[11,5], [11,6], [12,6]]);
+                _drawLine(grid2, [[1,8], [2,8], [2,9],[3,9]]);
+                _drawLine(grid2, [[1,16], [2,16], [2,17],[3,17]]);
+                _drawLine(grid2, [[5,9], [7,9], [7,11]]);
+                _drawLine(grid2, [[8,16], [9,16], [9,15]]);
+                _drawLine(grid2, [[12,13], [12,14], [11,14]]);
+                _drawLine(grid2, [[17,8], [18,8], [18,7],[19,7]]);
+                const grid3 = nodes.filter(d => d.index == 2);
+                _drawLine(grid3, [[1,8], [2,8], [2,9],[3,9]]);
+                _drawLine(grid3, [[1,16], [3,16], [3,17],[4,17]]);
+                _drawLine(grid3, [[7,17], [8,17], [8,16],[7,16]]);
+                _drawLine(grid3, [[9,14], [10,14], [10,13]]);
+                _drawLine(grid3, [[19,7], [19,8], [18,8]]);
+                _drawLine(grid3, [[17,8], [17,9], [16,9]]);
+                _drawLine(grid3, [[9,1], [9,2], [10,2]]);
+                _drawLine(grid3, [[13,10], [13,11], [12,11]]);
+                _drawLine(grid3, [[13,10], [13,9], [14,9]]);
+                _drawLine(grid2, [[5,9], [7,9], [7,11]]);
+                _drawLine(grid3, [[10,4], [10,5], [11,5]]);
+                _drawLine(grid3, [[12,6], [12,7], [13,7]]);
+                _drawLine(grid3, [[15,7], [15,8], [16,8]]);
+                const grid4 = nodes.filter(d => d.index == 3);
+                _drawLine(grid4, [[1,6], [1,8], [4.5,10], [6.5,7], [9,9.5],[6,13.5],[8,17],[10,17],[8,14.5],[13,10]]);
+                _drawLine(grid4, [[1,14], [5,18], [8,17]]);
+                _drawLine(grid4, [[10,2], [12,3.5], [10,4.5], [10,4.5],[12,7]]);
+            }
+            if(mark_id == 5) {
+                const grid1 = nodes.filter(d => d.index == 0);
+                drawLine(grid1, [[11,15], [11,16], [10,16]]);
+                const grid2 = nodes.filter(d => d.index == 1);
+                drawLine(grid2, [[8, 2], [9,2], [9,3]]);
+                drawLine(grid2, [[11, 4], [12,4], [12,5]]);
+                drawLine(grid2, [[14, 7], [15,7], [15,8]]);
+                drawLine(grid2, [[16, 9], [17,9], [17,10]]);
+                drawLine(grid2, [[18, 11], [18,12], [19,12]]);
+                drawLine(grid2, [[15, 11], [15,12], [14,12]]);
+                drawLine(grid2, [[13, 12], [13,13], [12,13]]);
+                drawLine(grid2, [[9, 15], [9,16], [8,16]]);
+                drawLine(grid2, [[5, 15], [6, 15], [6,16]]);
+                drawLine(grid2, [[4, 13], [5, 13], [5,14]]);
+                drawLine(grid2, [[3, 11], [4, 11], [4,12]]);
+                drawLine(grid2, [[1,10], [1, 9], [2, 9], [2,10]]);
+                const grid3 = nodes.filter(d => d.index == 2);
+                drawLine(grid3, [[8,2], [8, 3], [9,3], [9,4], [10, 4]]);
+                drawLine(grid3, [[11, 4], [12,4], [12,5]]);
+                drawLine(grid3, [[13, 6], [14,6], [14,7]]);
+                drawLine(grid3, [[0,10], [3,8], [5,14]]);
+                drawLine(grid3, [[20, 12],[18, 12], [18, 8], [15, 13],[12, 12], [12, 14], [10,14], [11, 16],[5,17]]);
+                const grid4 = nodes.filter(d => d.index == 3);
+                drawLine(grid4, [[0,10], [3,8], [5,14]]);
+                drawLine(grid4, [[8,0],[8,7],[10,5],[10,2], [12,2],[12,4],[14,6]]);
+                drawLine(grid4, [[20, 12],[18, 12], [18, 5], [15, 13],[12, 10], [8, 14], [14,15], [11, 18], [8,16],[5,19]]);
+            }
         },
         enableButton: function(){
             const button1 = this.svg.selectAll('.qn-buttons').filter(d => d.id === 0);
@@ -1049,7 +1254,8 @@ export default {
                     .attr('opacity', 0)
                     .style('cursor', 'pointer')
                     .on('click', () => {
-                        this.answer_dialog = true;
+                        // this.answer_dialog = true;
+                        this.loadAnswer();
                     })
                     .transition()
                     .duration(this.create_duration / 2)
@@ -1094,7 +1300,7 @@ export default {
                 return;
             }
             if(this.in_break && d.id == 1) {
-                if(this.is_first) return;
+                if(this.cur_pos == 1) return;
                 Utils.begin_loading();
                 this.workTime();
                 return;
@@ -1109,7 +1315,8 @@ export default {
                 if(d.id == 2) {
                     this.nxt_index = nxt;
                     if(this.cur_pos <= this.total_length[0] && !this.repeat_view){
-                        this.answer_dialog = true;
+                        // this.answer_dialog = true;
+                        this.loadAnswer();
                         return;
                     }
                     if(!this.in_break && (this.cur_pos - this.total_length[0]) % 9 == 0
@@ -1122,26 +1329,43 @@ export default {
             }
             await this.changeQuestion(nxt);
         },
-        openDialog: async function() {
+        loadAnswer: async function() {
             const that = this;
             await axios.post('/api/get-answer', {
             }).then(function(response) {
                 if(response.data.msg === 'Error') {
                     // console.log('Get answer error:', response.data.detail);
-                    this.answer_dialog = false;
+                    that.answer_dialog = false;
                 }
                 else{
                     // console.log('Get Answer', response.data);
                     that.answer_data = response.data.answer;
-                    that.dialogLayout();
-                    that.dialogRender();
+                    that.answer_dialog = true;
                 }
             });
+        },
+        openDialog: function() {
+            setTimeout(() => {
+                this.dialogLayout();
+                this.dialogRender();
+            }, 10);
+            // const that = this;
+            // await axios.post('/api/get-answer', {
+            // }).then(function(response) {
+            //     if(response.data.msg === 'Error') {
+            //         // console.log('Get answer error:', response.data.detail);
+            //         this.answer_dialog = false;
+            //     }
+            //     else{
+            //         // console.log('Get Answer', response.data);
+            //         that.answer_data = response.data.answer;
+            //         that.dialogLayout();
+            //         that.dialogRender();
+            //     }
+            // });
             // console.log("get answer await")
         },
         closeDialog: function() {
-            // this.d_svg.selectAll('.answer-nodes').remove();
-            // this.d_svg.selectAll('.')
             if(!this.repeat_view) this.changeQuestion(this.nxt_index);
             // if(this.cur_pos < this.total_length[0])
             //     this.changeQuestion(this.nxt_index);
@@ -1213,8 +1437,8 @@ export default {
                     this.consent_form = false;
                 }
             else {
-                this.$alert('<p style="font-size:18px;">Please read the consent form first and <span style="color:red;">agree to the relevant options</span>.</p>', 'Attention', {
-                    confirmButtonText: 'Confirm',
+                this.$alert('<p style="font-size:18px;">请阅读知情同意书并<span style="color:red;">同意相关条例</span>。</p>', '注意', {
+                    confirmButtonText: '确认',
                     dangerouslyUseHTMLString: true,
                 });
             }
@@ -1229,6 +1453,8 @@ export default {
                 type: 'warning'
             }).then(() => {
                 that.tutorial = false;
+                const video = document.getElementById('tutorial')
+                video.pause();
             });
         },
         // appended page
@@ -1391,13 +1617,17 @@ export default {
             return;
         }
         if(this.finish_all) {
-            this.finish_all = false;
-            // this.breakTime(3);
-            // this.enableButton();
-            // return;
+            // this.finish_all = false;
+            this.breakTime(3);
+            this.enableButton();
+            return;
         }
         // this.getHackData();
         this.getData();
+        // this.$message({
+        //   message: '当前版本为正在修改版本，可能存在信息丢失风险，请稍后作答',
+        //   type: 'warning'
+        // });
     },
 }
 </script>

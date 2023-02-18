@@ -6,10 +6,10 @@ import os
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(30)
-nxt_user_id = 0
+nxt_user_id = 72
 
 # for database
-DATABASE = "../database/database.db"
+DATABASE = "../database/update/database_8000.db"
 def get_db():
     db = getattr(g, "_database", None)
     if db is None:
@@ -44,17 +44,17 @@ def login():
     global nxt_user_id
     user_id = session.get("user_id", -1)
     if user_id == -1:
-        while not datasaver.insert_user(get_db(), nxt_user_id):
+        while nxt_user_id in finished_ids or not datasaver.insert_user(get_db(), nxt_user_id):
             nxt_user_id += 1
         user_id = nxt_user_id
         nxt_user_id += 1
         session["user_id"] = user_id
-    finished_num = datasaver.query_user_finish(get_db(), user_id)
+    finished_num, cur_pos = datasaver.query_user_finish(get_db(), user_id)
     return jsonify({
         "user_id": user_id, 
         "is_first": finished_num < 1, 
         "is_normal": finished_num > datasaver.question_num[0],
-        "finish_all": finished_num == datasaver.question_num[0] + datasaver.question_num[1]
+        "finish_all": finished_num == datasaver.question_num[0] + datasaver.question_num[1] and finished_num == cur_pos + 1
     })
 
 @app.route("/api/hack-data", methods=["POST"])

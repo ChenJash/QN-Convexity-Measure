@@ -1,5 +1,6 @@
 import sqlite3, random, time, pickle
 from IPython import embed
+import numpy as np
 
 class DataSaver(object):
     def __init__(self) -> None:
@@ -8,7 +9,7 @@ class DataSaver(object):
         self.select_user_qualified_query = "SELECT qualified FROM user WHERE user_session = {};"
         self.update_user_qualified_query = "UPDATE user SET qualified = {} WHERE user_session = {};"
         self.insert_load_query = "INSERT INTO load(user_session, question_id, question_name, load_seq) VALUES(?, ?, ?, ?);"
-        self.select_user_finished_num_query = "SELECT finished_num FROM user WHERE user_session = {}"
+        self.select_user_finished_num_query = "SELECT finished_num, cur_pos FROM user WHERE user_session = {}"
         self.update_user_finished_num_query = "UPDATE user SET finished_num = {} WHERE user_session = {}"
         self.update_user_cur_pos_query = "UPDATE user SET cur_pos = {} WHERE user_session = {}"
         self.select_load_query = "SELECT * FROM load WHERE user_session = {} AND question_id = {};"
@@ -24,6 +25,10 @@ class DataSaver(object):
         self.trans = {"A": 0, "B": 1, "C": 2, "D": 3}
         self.trans2 = {"T": 0, "S": 1, "E": 2, "C": 3}
         self.latin = []
+        self.count = np.array([7,6,6,6,4,5,6,5,4])
+        for i in range(9):
+            if self.count[i] >= 6:
+                self.count[i] = 100
         self.init_latin()
     
     # latin sequences
@@ -63,20 +68,25 @@ class DataSaver(object):
     def get_null_latin_seq(self, db: sqlite3.Connection, session_id) -> list:
         if session_id < 36:
             return self.get_seq(session_id)
-        cur = db.cursor()
-        cur.execute(self.select_all_users)
-        rows = cur.fetchall()
-        rows.sort(key=lambda x:x[0])
-        replace_id = -1
-        for row in rows:
-            if row[1] < self.question_num[0] + self.question_num[1]:
-                replace_id = row[0]
-                break
-        # print("replace", replace_id)
-        if replace_id > -1:
-            return self.get_seq(replace_id)
-        print("Database Error: too much submit more than 36.")
-        return self.get_seq(session_id)
+        # # find first unfinished
+        # cur = db.cursor()
+        # cur.execute(self.select_all_users)
+        # rows = cur.fetchall()
+        # rows.sort(key=lambda x:x[0])
+        # replace_id = -1
+        # for row in rows:
+        #     if row[1] < self.question_num[0] + self.question_num[1]:
+        #         replace_id = row[0]
+        #         break
+        # replace_id = replace_id % 36
+        # if replace_id > -1:
+        #     return self.get_seq(replace_id)
+
+        # find balance count
+        min_pos = np.argmin(self.count)
+        cur_session = self.count[min_pos] % 4 * 9 + min_pos
+        self.count[min_pos] += 1
+        return self.get_seq(cur_session)
 
     
     def insert_user(self, db: sqlite3.Connection, session_id) -> bool:
@@ -85,7 +95,7 @@ class DataSaver(object):
             cur = db.cursor()
             # simulation random
             seq0 = list(range(self.question_num[0]))
-            random.shuffle(seq0)
+            # random.shuffle(seq0)
             # normal latin square
             seq1 = list(map(lambda x: x+self.question_num[0], self.get_null_latin_seq(db, session_id)))
             seq = seq0 + seq1
@@ -108,8 +118,8 @@ class DataSaver(object):
         cur.execute(self.select_user_finished_num_query.format(session_id))
         rows = cur.fetchall()
         if len(rows) > 0:
-            return rows[0][0]
-        return -1
+            return rows[0][0], rows[0][1]
+        return -1, 0
 
     def load_data(self, db: sqlite3.Connection, question, session_id) -> list:
         cur = db.cursor()
