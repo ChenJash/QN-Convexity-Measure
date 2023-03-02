@@ -25,10 +25,7 @@ class DataSaver(object):
         self.trans = {"A": 0, "B": 1, "C": 2, "D": 3}
         self.trans2 = {"T": 0, "S": 1, "E": 2, "C": 3}
         self.latin = []
-        self.count = np.array([7,6,6,6,4,5,6,5,4])
-        for i in range(9):
-            if self.count[i] >= 6:
-                self.count[i] = 100
+        self.count = np.array([0]*9)
         self.init_latin()
     
     # latin sequences

@@ -7,6 +7,7 @@ import os
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(30)
 nxt_user_id = 72
+finished_ids = []
 
 # for database
 DATABASE = "../database/update/database_8000.db"
