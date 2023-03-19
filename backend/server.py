@@ -6,11 +6,11 @@ import os
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(30)
-nxt_user_id = 72
+nxt_user_id = 0
 finished_ids = []
 
 # for database
-DATABASE = "../database/update/database_8000.db"
+DATABASE = "../database/update/database_extra.db"
 def get_db():
     db = getattr(g, "_database", None)
     if db is None:

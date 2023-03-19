@@ -12,7 +12,7 @@ class DataLoader(object):
         self.meta_data = {}
         self.data = []
         self.test_path = "../datasets/results-chi/pkg-simutest-chi.pkl"
-        self.data_path = "../datasets/pkg-ques-final.pkl"
+        self.data_path = "../datasets/pkg-ques-extra.pkl"
         self.load_data()
         self.colors = MyColorMap()
         datasaver.set_question_num(self.meta_data["count"])

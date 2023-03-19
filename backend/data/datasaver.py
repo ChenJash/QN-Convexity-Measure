@@ -94,7 +94,10 @@ class DataSaver(object):
             seq0 = list(range(self.question_num[0]))
             # random.shuffle(seq0)
             # normal latin square
-            seq1 = list(map(lambda x: x+self.question_num[0], self.get_null_latin_seq(db, session_id)))
+            seq1 =  list(range(self.question_num[1]))
+            random.shuffle(seq1)          
+            seq1 = list(map(lambda x: x+self.question_num[0], seq1))
+            # seq1 = list(map(lambda x: x+self.question_num[0], self.get_null_latin_seq(db, session_id)))
             seq = seq0 + seq1
             cur.execute(self.insert_user_query, (session_id, 0, 0, 0, ",".join(list(map(str, seq)))))
             db.commit()
@@ -209,10 +212,10 @@ class DataSaver(object):
             return False, "Target position out of range."
         if pos >= self.question_num[0] + self.question_num[1]:
             return False, "This is the final question."
-        if pos >= self.question_num[0]:
-            judge, detail = self.judge_test(db, session_id)
-            if not judge:
-                return judge, detail
+        # if pos >= self.question_num[0]:
+        #     judge, detail = self.judge_test(db, session_id)
+        #     if not judge:
+        #         return judge, detail
         cur = db.cursor()
         cur.execute(self.update_user_cur_pos_query.format(pos, session_id))
         db.commit()

@@ -64,6 +64,7 @@ export default {
     data() {
         return {
             // answer states
+            extra: true,
             is_first: false,
             is_normal: false,
             finish_all: false,
@@ -167,19 +168,28 @@ export default {
                 "按照自己<tspan fill='green'>对于凸性的理解</tspan>进行排序即可， 请您务必认真对待每一道题!", 
                 "如果您已准备就绪，请点击 <tspan fill='red'>“开始”</tspan> 按钮, 进入<tspan fill='red'>正式作答</tspan>。"
             ], [
-                "您刚刚完成了一组 9 道题目。",
+                "您刚刚完成了一组 10 道题目。",
                 "您可以<tspan fill='green'>稍作休息，放松一下自己的眼睛</tspan>。",
                 " ",
                 "充分休息后，请您<tspan fill='red'>不间断地完成下一组的所有题目</tspan>。",
                 "如果您已准备就绪，请点击 <tspan fill='red'>“继续”</tspan> 按钮进入作答。"
             ], [
-                "您已完成<tspan fill='red'>全部问题的作答</tspan>, 衷心感谢您的参与！",
-                "在信息统计完成后，我们将会陆续发放答谢金！",
+                "您已完成<tspan fill='red'>全部问题的作答</tspan>, 衷心感谢您的再次参与！",
+                // "在信息统计完成后，我们将会陆续发放答谢金！",
                 "如果您有与本次调研相关的问题，请联系：<tspan fill='blue' text-decoration='underline'> <a xlink:href='mailto:jiashu0717c@gmail.com'>jiashu0717c@gmail.com</a></tspan>."
+            ],[
+                "接下来，您将进入补充题目<tspan fill='red'>正式作答</tspan>。共包含20道题目，平均分为2组。",
+                "在完成每一组的作答后，您都可以稍做休息，再继续进行下一组的作答。",
+                "但是，请确保您在每一组的作答中<tspan fill='red'>不间断地完成组内的所有问题</tspan>。",
+                "",
+                "正式作答中，您遇到的题目会比模拟测试的题目更加困难。",
+                "每一个问题可能没有标准答案，每一个选项都具有相对不差的凸性。",
+                "按照自己<tspan fill='green'>对于凸性的理解</tspan>进行排序即可， 请您务必认真对待每一道题!", 
+                "如果您已准备就绪，请点击 <tspan fill='red'>“开始”</tspan> 按钮, 进入<tspan fill='red'>正式作答</tspan>。"
             ]],
             tip_text: [
-                "小提示： 当网格布局中出现的类别数量较多时，尝试<tspan fill='green'>检查更多不同的类别形状</tspan>，",
-                "这能够帮助您更好地判断网格布局整体的凸性。",
+                "小提示： 当网格布局较为相似时，尝试<tspan fill='green'>观察更多的细节</tspan>，",
+                "或者 <tspan fill='green'>使用 “=” 号</tspan> 表达你认为它们非常相似相似、难以辨认。",
                 // "Tip: When the number of categories in a grid layout is large, it may be useful for you",
                 // "to <tspan fill='green'>check the convexity of more different categories</tspan>."
             ]
@@ -328,7 +338,8 @@ export default {
                             dangerouslyUseHTMLString: true,
                             callback: (action) => {
                                 if(action === 'confirm') {
-                                    window.open('https://www.wjx.cn/vm/maNPK0B.aspx#' ,'_blank');
+                                    // window.open('https://www.wjx.cn/vm/maNPK0B.aspx#' ,'_blank');
+                                    window.open('https://www.wjx.cn/vm/eYvyA3X.aspx#' ,'_blank'); 
                                     that.breakTime(3);
                                     that.finish_all = true;
                                 }
@@ -1319,7 +1330,9 @@ export default {
                         this.loadAnswer();
                         return;
                     }
-                    if(!this.in_break && (this.cur_pos - this.total_length[0]) % 9 == 0
+                    let mod = 9;
+                    if(this.extra) mod == 10
+                    if(!this.in_break && (this.cur_pos - this.total_length[0]) % 10 == 0
                         && this.cur_pos != this.total_length[0] + this.total_length[1]
                         && this.cur_pos > this.total_length[0]) {
                         this.breakTime(2);
@@ -1478,7 +1491,8 @@ export default {
             let start_y = use_text == 0 ? 350: 220;
             if(use_text == 2) start_y = 310;
             if(use_text == 3) start_y = 400;
-            let button_y = use_text != 1? 620: 700;
+            let button_y = use_text != 1 ? 620: 700;
+            if(use_text == 4) button_y = 700;
             if(use_text == 0) button_y = 580;
             const str_data = used_text.map((d, index) => {
                 return {
@@ -1507,7 +1521,7 @@ export default {
                 .transition()
                 .duration(this.create_duration)
                 .attr('opacity', 1)
-            if(use_text == 1) {
+            if(use_text == 1 || use_text == 4) {
                 const tip_data = this.tip_text.map((d, index) => {
                     return {
                         id: index,
@@ -1571,7 +1585,7 @@ export default {
                     .attr('fill', 'red')
                 table_svg.select('g.break-button')
                     .append('text')
-                    .text(use_text < 2 ? '开始': '继续')
+                    .text(use_text < 2 || use_text == 4 ? '开始': '继续')
                     .attr('font-family', 'Times, "Times New Roman", "楷体"')
                     .attr('x', 0)
                     .attr('y', 7)
@@ -1609,6 +1623,25 @@ export default {
     async mounted() {
         await this.login();
         this.initRender();
+        if(this.extra && this.is_first) {
+            this.breakTime(4);
+            this.enableButton();
+            this.consent_form = false;
+            this.tutorial = true;
+            this.$confirm('本次测试为补充测试，衷心感谢您的参与。\n请确认是否跳过教程和模拟测试？', '提示', {
+                confirmButtonText: '跳过',
+                cancelButtonText: '取消',
+                type: 'warning',
+                closeOnClickModal: false,
+                closeOnPressEscape: false,
+                }).then(() => {
+                    this.tutorial = false;
+                    this.nxt_index = 6;})
+                // }).catch(() => {
+                          
+                // });
+            return;
+        }
         if(this.is_first) {
             this.breakTime();
             this.enableButton();

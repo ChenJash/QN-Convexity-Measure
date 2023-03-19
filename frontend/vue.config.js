@@ -2,6 +2,10 @@ const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
+    // watchFiles:false,
+    hot: false,
+    liveReload: false,
+    // webSocketServer: false,
     proxy: {
       '/api': {
         target: "http://localhost:5000/",
